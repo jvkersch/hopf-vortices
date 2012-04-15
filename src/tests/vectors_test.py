@@ -15,16 +15,13 @@ class testFloatEqual(unittest.TestCase):
         from vectors import random_vector
         self.v = random_vector(N)
         self.w_real = random_vector(N)
-        self.w_complex = random_vector(N, complex=True)
+        self.w_complex = random_vector(N, iscomplex=True)
 
     def testRealEquality(self):
         "Test floating-point equality of real vectors."
 
         v = self.v
         v_perturb = self.v + 1e-8*(self.w_real + 1)
-
-        print v 
-        print v_perturb
 
         self.assertTrue(is_float_equal(v, v))
         self.assertTrue(is_float_equal(v, v_perturb)) 
@@ -39,9 +36,6 @@ class testFloatEqual(unittest.TestCase):
 
         self.assertTrue(is_float_equal(v, v_perturb, tol=1e-6))
         self.assertFalse(is_float_equal(v, v_perturb, tol=1e-9))        
-
-
-
 
 
 class testNormalize(unittest.TestCase):

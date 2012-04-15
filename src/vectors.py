@@ -16,7 +16,7 @@ def hstack(v, n):
 
 def is_float_equal(v1, v2, tol=1e-7):
     "Equality of floating point vectors."
-    return all(np.abs(v1 - v2) < tol)
+    return (np.abs(v1 - v2) < tol).all()
 
 def normalize(array):
     """Normalize rows of array to unit length. Array can be real or complex."""
