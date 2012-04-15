@@ -3,13 +3,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to hopf_vortices’s documentation! &mdash; hopf_vortices v0.0 documentation</title>
+    <title>Welcome to hopf_vortices’s documentation! &mdash; hopf_vortices 0.0 documentation</title>
+    
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -22,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hopf_vortices v0.0 documentation" href="#" /> 
+    <link rel="top" title="hopf_vortices 0.0 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">hopf_vortices v0.0 documentation</a> &raquo;</li> 
+        <li><a href="#">hopf_vortices 0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,36 +53,15 @@
 <ul class="simple">
 </ul>
 </div>
-<span class="target" id="module-sphere_vortex_system"></span><p>Functions dealing with continuous-time vortex systems.</p>
-<dl class="function">
-<dt id="sphere_vortex_system.vortex_hamiltonian">
-<tt class="descclassname">sphere_vortex_system.</tt><tt class="descname">vortex_hamiltonian</tt><big>(</big><big>)</big><a class="headerlink" href="#sphere_vortex_system.vortex_hamiltonian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Value of the energy for a vortex configuration.</p>
+<span class="target" id="module-lie_algebra"></span><dl class="function">
+<dt id="lie_algebra.cayley">
+<tt class="descclassname">lie_algebra.</tt><tt class="descname">cayley</tt><big>(</big><em>xi</em><big>)</big><a class="headerlink" href="#lie_algebra.cayley" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies Cayley map to the Lie algebra element xi.</p>
 <p>INPUT:</p>
 <blockquote>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">gamma</span></tt> - Vector of vortex strengths.</li>
-<li><tt class="docutils literal"><span class="pre">X</span></tt> - Array of vortex locations in 3D.</li>
-<li><tt class="docutils literal"><span class="pre">sigma</span></tt> - Scalar value for regularization parameter.</li>
-</ul>
-</blockquote>
+<div>&#8211; <tt class="docutils literal"><span class="pre">xi</span></tt> - Lie algebra matrix.</div></blockquote>
 <p>OUTPUT:</p>
-<p>Value of the energy as a scalar.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="sphere_vortex_system.vortex_moment">
-<tt class="descclassname">sphere_vortex_system.</tt><tt class="descname">vortex_moment</tt><big>(</big><big>)</big><a class="headerlink" href="#sphere_vortex_system.vortex_moment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Moment of a vortex configuration.</p>
-<p>INPUT:</p>
-<blockquote>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">gamma</span></tt> - Vector of vortex strengths.</li>
-<li><tt class="docutils literal"><span class="pre">X</span></tt> - Array of vortex locations in 3D.</li>
-</ul>
-</blockquote>
-<p>OUTPUT:</p>
-<p>Value of the vortex moment as a numpy three-vector.</p>
+<p>Group element.</p>
 </dd></dl>
 
 </div>
@@ -114,7 +96,7 @@
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" size="18" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
@@ -137,12 +119,12 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">hopf_vortices v0.0 documentation</a> &raquo;</li> 
+        <li><a href="#">hopf_vortices 0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2012, Joris Vankerschaver.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

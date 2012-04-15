@@ -11,7 +11,13 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: sphere_vortex_system
+.. automodule:: lie_algebra
+   :members:
+
+.. automodule:: su2_geometry
+   :members:
+
+.. automodule:: continuous_vortex_system
    :members:
 
 

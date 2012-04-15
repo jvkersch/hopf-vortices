@@ -68,4 +68,4 @@ def is_special_unitary(U, tol=1e-12):
 
     """
     I = np.eye(U.shape[0])
-    return is_float_equal(np.dot(U, U.H), I) && (abs(np.linalg.det(U)-1) < tol)
+    return is_float_equal(np.dot(U, U.H), I) and (abs(np.linalg.det(U)-1) < tol)
