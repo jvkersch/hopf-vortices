@@ -1,6 +1,6 @@
 import numpy as np
 
-from vectors import normalize
+from vectors import normalize, is_float_equal
 
 
 def hopf(psi):
@@ -56,3 +56,16 @@ def inverse_hopf(X):
 
     return psi
 
+
+def is_special_unitary(U, tol=1e-12):
+    """Tests whether a given matrix belongs to SU(N), i.e. satisfies 
+    :math:`UU^\dagger = U^\dagger U = I` and :math:`\det(U) = 1`.
+
+    INPUT:
+    
+      -- ``U`` - square matrix.
+      -- ``tol`` - tolerance with which to verify unitarity.
+
+    """
+    I = np.eye(U.shape[0])
+    return is_float_equal(np.dot(U, U.H), I) && (abs(np.linalg.det(U)-1) < tol)
