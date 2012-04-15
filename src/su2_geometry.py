@@ -1,14 +1,5 @@
 import numpy as np
 
-def hstack(v, n):
-    """Return array with vector v in each of the n columns"""
-    return np.kron(np.ones((n, 1)), v).T
-
-def normalize(array):
-    """Normalize rows of array to unit length. Array can be real or complex."""
-
-    norms = np.sqrt(np.sum(array*array.conjugate(), axis=1))
-    return array/hstack(norms, array.shape[1])
 
 
 def hopf(psi):
