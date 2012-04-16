@@ -72,7 +72,6 @@ class testHatmap(unittest.TestCase):
         self.assertTrue(is_float_equal(inverse_hatmap(self.A), self.a))
         
 
-
 if __name__ == '__main__':
     unittest.main()
 
