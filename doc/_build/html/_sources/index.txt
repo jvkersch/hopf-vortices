@@ -11,14 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: lie_algebra
-   :members:
-
-.. automodule:: su2_geometry
-   :members:
-
-.. automodule:: continuous_vortex_system
-   :members:
+   lie_algebra
+   su2_geometry
+   continuous_vortex_system
 
 
 Indices and tables

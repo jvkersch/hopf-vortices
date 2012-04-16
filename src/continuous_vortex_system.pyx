@@ -51,7 +51,6 @@ cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     return res
 
 
-
 @cython.boundscheck(False) 
 @cython.wraparound(False)
 cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs_old(
@@ -95,8 +94,6 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
     return res
 
 
-
-
 @cython.boundscheck(False) 
 @cython.wraparound(False)
 def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma, 
@@ -107,7 +104,9 @@ def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma,
     INPUT:
 
       - ``gamma`` - Vector of vortex strengths.
+
       - ``X`` - Array of vortex locations in 3D.
+
       - ``sigma`` - Scalar value for regularization parameter.
 
     OUTPUT:
@@ -138,6 +137,7 @@ def vortex_moment(np.ndarray[DTYPE_t, ndim=1] gamma,
     INPUT:
 
       - ``gamma`` - Vector of vortex strengths.
+
       - ``X`` - Array of vortex locations in 3D.
 
     OUTPUT:

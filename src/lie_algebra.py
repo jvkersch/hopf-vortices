@@ -12,8 +12,17 @@ def cayley(xi):
     Group element.
 
     """
-    m, n = xi.shape[1]
-    if m != n:
-        raise ValueError, "Lie algebra element must be square matrix."
+
+    if xi.ndim == 2:
+        xi = np.array([xi])
+
+    xi = np.array(xi)
+    m, _, n = xi.shape
     I = np.eye(m)
-    return np.dot(xi + I, np.linalg.inv(xi - I))
+    M = np.empty((m, m, n), dtype=complex)
+
+    for k in xrange(0, n):
+        element = xi[:, :, k]
+        M[:, :, k] = np.dot(element + I, np.linalg.inv(element - I))
+
+    return M

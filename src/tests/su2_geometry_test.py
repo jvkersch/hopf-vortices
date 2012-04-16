@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from vectors import (random_array, random_vector, hstack, 
                      is_float_equal, normalize)
-from su2_geometry import hopf, inverse_hopf
+from su2_geometry import hopf, inverse_hopf, hatmap, inverse_hatmap, is_su
 
 
 class testHopf(unittest.TestCase):
@@ -49,6 +49,29 @@ class testHopf(unittest.TestCase):
         # Test whether column elements have unit norm
         p = phases[:, 0]
         self.assertTrue(is_float_equal(p*p.conjugate(), np.ones(self.N)))
+
+
+class testHatmap(unittest.TestCase):
+    "Tests for hat map and its inverse."
+
+    def setUp(self):
+        self.N = 5
+        self.a = random_array((self.N, 3))
+        self.A = hatmap(self.a)
+
+    def testAntiHermiticity(self):
+        """Test whether the image of the hatmap is anti-hermitian and 
+        traceless."""
+
+        self.assertTrue(is_su(self.A))
+
+    def testInverseHatmap(self):
+        """Test whether composition of hatmap and its inverse
+        give the identity."""
+
+        self.assertTrue(is_float_equal(inverse_hatmap(self.A), self.a))
+        
+
 
 if __name__ == '__main__':
     unittest.main()
