@@ -58,6 +58,28 @@ def is_su(A, tol=1e-12):
     return True
 
 
+def cayley_klein(a):
+    """Applies explicit form of the Cayley map in su(2) to the rows of A."""
+
+    if a.ndim == 1:
+        a = np.array([a])
+    else:
+        a = np.array(a)
+
+    N = a.shape[0]
+    I = np.eye(2)
+
+    A = hatmap(a)
+    norms2 = np.sum(a*a, axis=1)
+
+    U = np.ones((2, 2, N))
+    U = np.tensordot(1-norms2, U, axes=(0, 0)) + 2*A
+    U = np.tensordot(1/(1-norms2), U, axes=(0, 0))
+
+    return U
+
+
+
 
 def is_SU(U, tol=1e-12):
     """Tests whether a given matrix belongs to SU(N), i.e. satisfies 

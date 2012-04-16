@@ -1,5 +1,8 @@
 import numpy as np
 
+from vectors import vectorize
+
+
 def cayley(xi):
     """Applies Cayley map to the Lie algebra element xi.
 
