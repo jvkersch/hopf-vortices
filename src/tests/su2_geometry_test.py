@@ -63,7 +63,7 @@ class testHatmap(unittest.TestCase):
         """Test whether the image of the hatmap is anti-hermitian and 
         traceless."""
 
-        self.assertTrue(is_su(self.A))
+        self.assertTrue(is_su(self.A).all())
 
     def testInverseHatmap(self):
         """Test whether composition of hatmap and its inverse
