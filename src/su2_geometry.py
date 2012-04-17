@@ -259,17 +259,32 @@ def cayley_klein(a):
 
 
 def hopf(psi):
-    """Applies Hopf fibration row-wise.
+    """Apply the Hopf fibration map to the rows of `psi`.
 
-    INPUT:
+    Parameters
+    ----------
 
-      -- ``psi`` - complex Nx2 array with unit vectors on three-sphere.
+    psi : array-like
+          Nx2 complex array whose rows are unit vectors on the three-sphere.
 
-    OUTPUT:
+    Returns
+    -------
 
-      Real-valued Nx3 array of corresponding 3-vectors on two-sphere.
+    X : array-like
+        Nx3 real array of Hopf-projected vectors.
+
+    Examples
+    --------
+
+    >>> hopf([1j, 0])
+    array([[ 0.,  0.,  1.]])
+    >>> hopf([1, 0])
+    array([[0, 0, 1]])
 
     """
+    psi = np.array(psi, dtype=complex)
+    if psi.ndim == 1:
+        psi = np.array([psi])
 
     Z = psi[:, 0]
     U = psi[:, 1]
@@ -283,23 +298,48 @@ def hopf(psi):
     
 
 def inverse_hopf(X):
-    """Applies inverse of the Hopf map, i.e. finds an element in the 
+    """
+    Apply inverse of the Hopf map, i.e. finds an element in the 
     fiber of the Hopf map over a given point.
 
-    INPUT:
+    Parameters
+    ----------
 
-      -- ``X`` - Nx3 array of vectors on the 2-sphere.
+    X : array-like
+        Nx3 real array of vectors on the 2-sphere.
 
-    OUTPUT: 
+    Returns 
+    -------
 
-    Complex Nx2 array of vectors on the 3-sphere that project down onto X.
+    psi : array-like
+          Nx2 complex array of vectors on the 3-sphere that project down onto 
+          the rows of `X`.
+
+    Examples
+    --------
+
+    >>> X = hopf([1., 0])
+    >>> inverse_hopf(X)
+    array([[ 1.+0.j,  0.+0.j]])
+
+    Note: due to non-uniqueness of the inverse Hopf map, the composition 
+    of `inverse_hopf` with `hopf` will only give the identity up to a 
+    complex phase.
+
+    >>> X = hopf([1j, 0])
+    >>> inverse_hopf(X)
+    array([[ 1.+0.j,  0.+0.j]])
 
     """
+
+    X = np.array(X)
+    if X.ndim == 1:
+        X = np.array([X])
 
     n, m = X.shape
     x = X[:, 0]; y = X[:, 1]; z = X[:, 2]
 
-    f = 1/(1 + abs(z))
+    f = 1./(1. + abs(z))
     zeta = f*(x + 1j*y)
     zeta_conj = np.vstack((zeta.conjugate(), zeta)).T
 
