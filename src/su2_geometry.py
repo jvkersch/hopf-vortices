@@ -135,6 +135,7 @@ def is_su(A, tol=1e-12):
     array([ True,  True], dtype=bool)
 
     """
+    A = np.array(A)
     if A.ndim == 2:
         A = np.array([A])
 
@@ -144,49 +145,96 @@ def is_su(A, tol=1e-12):
     out = np.empty(N, dtype=np.bool)
     for k, u in enumerate(A):
         xi = np.matrix(u) 
-        out[k] = is_float_equal(xi + xi.H, tol) and abs(np.trace(xi)) < tol
+        out[k] = is_float_equal(xi + xi.H, Z, tol) and abs(np.trace(xi)) < tol
 
     return out
 
+
 def is_SU(U, tol=1e-12):
-    """Tests whether a given matrix belongs to SU(N), i.e. satisfies 
-    :math:`UU^\dagger = U^\dagger U = I` and :math:`\det(U) = 1`.
+    r"""
+    Determine whether the slices along the 0-axis of the array `U` represent 
+    elements of the Lie group :math:`SU(2)`, by checking whether
+    the relations 
 
-    TODO: docstring out of date.
+    .. math::
 
-    INPUT:
+        UU^\dagger = U^\dagger U = \mathrm{I}, \quad \det(U) = 1
+
+    hold for each slice, up to a tolerance specified by `tol`.
     
-      -- ``U`` - square matrix.
+    Parameters
+    ----------
 
-      -- ``tol`` - tolerance with which to verify unitarity.
+    U : array_like
+        Nx2x2 complex array.
+    tol : float, optional
+          Tolerance with which to verify :math:`SU(2)`-criteria.
+   
+    Returns
+    -------
+
+    out : array-like
+          N-vector of booleans determining whether the corresponding slice of `U`
+          belongs to :math:`SU(2)`.
+
+    Examples
+    --------
+
+    >>> A = hatmap([1, 2, 3]); A
+    array([[[ 0.+3.j,  2.+1.j],
+            [-2.+1.j, -0.-3.j]]])
+    >>> import scipy.linalg
+    >>> U = scipy.linalg.expm(A); U
+    array([[-0.82529906-0.45276398j, -0.30184265-0.15092133j],
+           [ 0.30184265-0.15092133j, -0.82529906+0.45276398j]])
+    >>> is_SU(U)
+    array([ True], dtype=bool)
 
     """
 
+    U = np.array(U)
     if U.ndim == 2:
         U = np.array([U])
 
-    n = U.shape[0]
-    U = np.array(U)
-    I = np.eye(n)
+    N = U.shape[0]
+    I = np.eye(2)
 
-    for k in xrange(0, n):
-        U_mat = np.matrix(U[:, :, k])
-        if not is_float_equal(np.dot(U_mat, U_mat.H), I) or \
-           not abs(np.linalg.det(U_mat)-1) < tol:
-            return False
+    out = np.empty(N, dtype=np.bool)
+    for k, u in enumerate(U):
+        um = np.matrix(u) 
+        out[k] = is_float_equal(um*um.H, I, tol) and \
+            abs(np.linalg.det(um)-1) < tol
 
-    return True
-
-
+    return out
 
 
 def cayley_klein(a):
-    """Applies explicit form of the Cayley map in su(2) to the rows of A."""
+    r"""
+    Apply the explicit form of the :math:`\mathfrak{su}(2)`-Cayley map to 
+    the rows of A.
 
+    Parameters
+    ----------
+
+    a : array-like
+        Nx3 real array of :math:`\mathfrak{su}(2)`-elements in the vector 
+        representation.
+
+    Returns
+    -------
+
+    out: array-like
+         Nx2x2 complex array of :math:`SU(2)`-elements.
+
+    Examples
+    --------
+
+
+    """
+
+    a = np.array(a)
     if a.ndim == 1:
         a = np.array([a])
-    else:
-        a = np.array(a)
 
     N = a.shape[0]
     I = np.eye(2)
