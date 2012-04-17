@@ -13,73 +13,140 @@ tau_basis = 1j*pauli
 
 
 def hatmap(a):
-    """Applies hatmap from R3 to su(2) row-wise.
+    """
+    Applies hatmap from R3 to su(2) row-wise.
 
-    INPUT: 
+    Parameters
+    ----------
 
-      -- ``a`` - Nx3 real array.
+    a : array-like
+        Nx3 array of real entries, or 3-vector.
 
-    OUTPUT:
+    Returns 
+    -------
 
-    Complex 2x2xN array whose slices along the 2-axis
-    are the corresponding elements of su(2).
+    A : array-like
+        Complex Nx2x2 array whose slices along the 2-axis
+        are the corresponding elements of su(2).
+
+    Examples
+    --------
+
+    >>> A = hatmap([1, 2, 3])
+    >>> A.shape
+    (2, 2, 1)
+    >>> A[:, :, 0]
+    array([[ 0.+3.j,  2.+1.j],
+    [-2.+1.j, -0.-3.j]])
 
     """
+    a = np.array(a)
+    if a.ndim == 1:
+        a = np.array([a])
+
+    N = a.shape[0]
 
     x = np.array(a[:, 0])
     y = np.array(a[:, 1])
     z = np.array(a[:, 2])
 
-    A = np.array([[z*1j, y + x*1j], [-y + x*1j, -z*1j]])
+    A = np.empty((N, 2, 2), dtype=complex)
+    A[:, 0, 0] = z*1j
+    A[:, 0, 1] =  y + x*1j
+    A[:, 1, 0] = -y + x*1j
+    A[:, 1, 1] = -z*1j
+
     return A
 
 
 def inverse_hatmap(A):
+    """
+    Apply the inverse of the hatmap to the su(2)-slices along the 0-axis of A. In other words, 
+    return the vector representation of the slices of A.
 
-    x = A[0, 1, :].imag
-    y = A[0, 1, :].real
-    z = (A[0, 0, :]/(1j)).real
+    Parameters
+    ----------
+
+    A : array-like
+        Complex Nx2x2 array whose slices along the 0-axis are elements of su(2), 
+        or complex 2x2 array representing an element of su(2).
+
+    Returns
+    -------
+
+    a : array-like
+        Real Nx3 array containing the vector representation of the slices of A.
+
+    Examples
+    --------
+
+    >>> A = np.array([[3j, 2+1j], [-2+1j, -3j]]); A
+    array([[ 0.+3.j,  2.+1.j],
+       [-2.+1.j,  0.-3.j]])
+    >>> a = inverse_hatmap(A); a
+    array([[ 1.,  2.,  3.]])
+
+    """
+    
+    A = np.array(A)
+    if A.ndim == 2:
+        A = np.array([A])
+
+    x =  A[:, 0, 1].imag
+    y =  A[:, 0, 1].real
+    z = (A[:, 0, 0]/(1j)).real
 
     return np.array([x, y, z]).T
 
 
 def is_su(A, tol=1e-12):
+    r"""
+    Determine whether the slices along the 0-axis of the array `A` represent 
+    elements of the Lie algebra :math:`\mathfrak{su}(2)`, by checking whether
+    the relations 
 
+    .. math::
+
+        A = -A^\dagger, \quad \mathrm{trace}(A) = 0
+
+    hold for each slice, up to a tolerance specified by `tol`.
+
+    Parameters
+    ----------
+
+    A : array-like
+        Nx2x2 array of complex numbers.
+    tol : float, optional
+        Tolerance with which to verify :math:`\mathfrak{su}(2)`-criteria.
+   
+    Returns
+    -------
+
+    out : array-like
+          N-vector of booleans determining whether the corresponding slice of `A`
+          belongs to :math:`\mathfrak{su}(2)`.
+
+    Examples
+    --------
+
+    >>> a = np.array([[1, 2, 3], [4, 5, 6]])
+    >>> A = hatmap(a)
+    >>> is_su(A)
+    array([ True,  True], dtype=bool)
+
+    """
     if A.ndim == 2:
         A = np.array([A])
 
-    n = A.shape[2]
-    for k in xrange(0, n):
-        xi = np.matrix(A[:, :, k])
-        if not is_float_equal(xi + xi.H, np.zeros((2, 2)), tol) or \
-           not abs(np.trace(xi)) < tol:
-            return False
+    N = A.shape[0]
+    Z = np.zeros((2, 2))
 
-    return True
+    out = np.empty(N, dtype=np.bool)
+    for k, u in enumerate(A):
+        xi = np.matrix(u) 
+        out[k] = is_float_equal(xi + xi.H, tol) and abs(np.trace(xi)) < tol
 
-
-def cayley_klein(a):
-    """Applies explicit form of the Cayley map in su(2) to the rows of A."""
-
-    if a.ndim == 1:
-        a = np.array([a])
-    else:
-        a = np.array(a)
-
-    N = a.shape[0]
-    I = np.eye(2)
-
-    A = hatmap(a)
-    norms2 = np.sum(a*a, axis=1)
-
-    U = np.ones((2, 2, N))
-    U = np.tensordot(1-norms2, U, axes=(0, 0)) + 2*A
-    U = np.tensordot(1/(1-norms2), U, axes=(0, 0))
-
-    return U
-
-
-
+    return out
 
 def is_SU(U, tol=1e-12):
     """Tests whether a given matrix belongs to SU(N), i.e. satisfies 
@@ -109,6 +176,29 @@ def is_SU(U, tol=1e-12):
             return False
 
     return True
+
+
+
+
+def cayley_klein(a):
+    """Applies explicit form of the Cayley map in su(2) to the rows of A."""
+
+    if a.ndim == 1:
+        a = np.array([a])
+    else:
+        a = np.array(a)
+
+    N = a.shape[0]
+    I = np.eye(2)
+
+    A = hatmap(a)
+    norms2 = np.sum(a*a, axis=1)
+
+    U = np.ones((2, 2, N))
+    U = np.tensordot(1-norms2, U, axes=(0, 0)) + 2*A
+    U = np.tensordot(1/(1-norms2), U, axes=(0, 0))
+
+    return U
 
 
 def hopf(psi):
