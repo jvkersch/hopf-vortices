@@ -1,5 +1,5 @@
-Methods for SU(2)
-=================
+Lie algebra/group methods for SU(2)
+===================================
 
 Contents:
 

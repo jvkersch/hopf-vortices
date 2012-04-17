@@ -229,6 +229,14 @@ def cayley_klein(a):
     Examples
     --------
 
+    >>> a = random_array((2, 3))
+    >>> U = cayley_klein(a); U
+    array([[[  5.14439735e-04+0.31185548j,   9.03869005e-01+0.29285955j],
+            [ -9.03869005e-01+0.29285955j,   5.14439735e-04-0.31185548j]],
+           [[  2.63979421e-01+0.4278009j ,   8.64340351e-01+0.01473146j],
+            [ -8.64340351e-01+0.01473146j,   2.63979421e-01-0.4278009j ]]])
+    >>> is_SU(U)
+    array([ True,  True], dtype=bool)
 
     """
 
@@ -237,14 +245,15 @@ def cayley_klein(a):
         a = np.array([a])
 
     N = a.shape[0]
-    I = np.eye(2)
-
     A = hatmap(a)
     norms2 = np.sum(a*a, axis=1)
 
-    U = np.ones((2, 2, N))
-    U = np.tensordot(1-norms2, U, axes=(0, 0)) + 2*A
-    U = np.tensordot(1/(1-norms2), U, axes=(0, 0))
+    U = np.zeros((N, 2, 2))
+    U[:, 0, 0] = np.ones(N)
+    U[:, 1, 1] = np.ones(N)
+
+    U = np.einsum('a,abc -> abc', 1-norms2, U) + 2*A
+    U = np.einsum('a,abc -> abc', 1./(1+norms2), U)
 
     return U
 
