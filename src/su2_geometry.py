@@ -1,5 +1,4 @@
 import numpy as np
-
 from vectors import normalize, is_float_equal
 
 # Pauli matrices
