@@ -1,5 +1,5 @@
 import numpy as np
-from vectors import normalize, is_float_equal
+from vectors import normalize, is_float_equal, row_product
 
 # Pauli matrices
 pauli = np.empty((2, 2, 3), dtype=complex)
@@ -9,6 +9,7 @@ pauli[:, :, 2] = [[1, 0], [0, -1]]
 
 # Standard basis for Lie algebra su(2)
 tau_basis = 1j*pauli
+
 
 
 def hatmap(a):
@@ -252,10 +253,43 @@ def cayley_klein(a):
     U[:, 0, 0] = np.ones(N)
     U[:, 1, 1] = np.ones(N)
 
-    U = np.einsum('a,abc -> abc', 1-norms2, U) + 2*A
-    U = np.einsum('a,abc -> abc', 1./(1+norms2), U)
+    U = row_product(1-norms2, U) + 2*A
+    U = row_product(1./(1+norms2), U)
 
     return U
+
+def cayley_klein(a, x):
+    r"""Apply the Cayley-Klein map directly to a set of vectors `x`.
+
+    TODO: might be slow
+
+    TODO: test this
+
+    Examples
+    --------
+
+    >>> a = [1, 2, 3]
+    >>> x = [4, 5, 6]
+    >>> cayley_klein(a, x)
+    array([[ 2.45333333,  6.17333333,  5.73333333]])
+
+    """
+    a = np.array(a)
+    x = np.array(x)
+
+    if a.ndim == 1:
+        a = np.array([a])
+        x = np.array([x])
+
+    norms2 = np.sum(a*a, axis=1)
+    dot_ax = np.sum(a*x, axis=1)
+
+    tmp = row_product((1.-norms2)**2, x) - \
+        4.*row_product(1. - norms2, np.cross(a, x, axis=1)) + \
+        8.*row_product(dot_ax, a) - \
+        4.*row_product(norms2, x)
+
+    return row_product(1./(1. + norms2)**2, tmp)
 
 
 def hopf(psi):

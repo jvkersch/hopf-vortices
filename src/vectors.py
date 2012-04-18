@@ -11,6 +11,33 @@ def hstack(v, n):
     """Return array with vector v in each of the n columns"""
     return np.kron(np.ones((n, 1)), v).T
 
+def row_product(vec, arr):
+    """
+    Multiply the rows of `array` by the elements of `vector`.
+
+    Parameters
+    ----------
+
+    array : array-like
+            N-vector
+    matrix : array-like
+             Nx... matrix
+             
+    Returns
+    -------
+
+    out : array-like
+          Nx... matrix whose rows are those of `array`, scaled by the 
+          corresponding entries in `vector`.
+
+    """
+    # return np.einsum('a...,a... -> a...', vector, array) 
+
+    vec = np.array(vec)
+    arr = np.array(arr)
+
+    return vec[:, np.newaxis]*arr
+
 
 # Linear algebra
 
