@@ -23,8 +23,8 @@ cdef extern from "math.h":
     double log(double)
 
 
-@cython.boundscheck(False) 
-@cython.wraparound(False)
+#@cython.boundscheck(False) 
+#@cython.wraparound(False)
 cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X, 
@@ -39,7 +39,7 @@ cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     cdef np.ndarray[DTYPE_t, ndim=2] res = np.zeros([N, ndim], dtype=DTYPE)
     cdef np.ndarray[DTYPE_t, ndim=1] vec 
     cdef int i, j
-    
+
     for i from 0 <= i < N:
         for j from i+1 <= j < N:
             vec = X[i, :] - X[j, :]

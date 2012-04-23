@@ -11,12 +11,13 @@ import numpy as np
 from matlab_io import *
 from vectors import row_product, is_float_equal
 
+test_suite = 'medium_system.mat'
 
 class testMatlab(unittest.TestCase):
 
     def setUp(self):
         [b, x0, gamma, grad, psi0, h, res_adjoint, res_direct, sigma] = \
-            load_variables_from_matfile('testsuite.mat', 
+            load_variables_from_matfile(test_suite, 
                                         ['B', 'X0', 'gamma_row', 'grad',
                                          'psi0', 'h', 'res_adjoint', 
                                          'res_direct', 'sigma'])

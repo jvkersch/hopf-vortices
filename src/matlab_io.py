@@ -4,10 +4,12 @@ import scipy.io as sio
 def load_ic_from_matfile(filename):
     c = sio.loadmat(filename)
 
+    sigma = c['sigma']
     X0 = c['X0']
     gamma = c['gamma'].reshape(X0.shape[1])
 
-    return gamma, X0
+    sigma = sigma[0][0]
+    return gamma, X0, sigma
 
 
 def save_ic_to_matfile(filename, gamma, X0):
