@@ -23,8 +23,8 @@ cdef extern from "math.h":
     double log(double)
 
 
-#@cython.boundscheck(False) 
-#@cython.wraparound(False)
+@cython.boundscheck(False) 
+@cython.wraparound(False)
 cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X, 
@@ -51,34 +51,6 @@ cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     return res
 
 
-##### Functions below still use the old calling convention, where the 
-#### vortex locations are distributed along the rows of X !!!!
-
-
-@cython.boundscheck(False) 
-@cython.wraparound(False)
-cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs_old(
-    np.ndarray[DTYPE_t, ndim=1] gamma, 
-    np.ndarray[DTYPE_t, ndim=2] X):
-    # Agrees with Matlab
-
-
-    cdef int m = X.shape[0]
-    cdef int n = X.shape[1]
-    cdef np.ndarray[DTYPE_t, ndim=2] res = np.zeros([m, n], dtype=DTYPE)
-    cdef np.ndarray[DTYPE_t, ndim=1] vec
-    cdef int i, j
-
-    for i from 0 <= i < n:
-        for j from i+1 <= j < n:
-            vec = 1.0/(4*pi)*np.cross(X[:, j], X[:, i])/ \
-                (1 - np.dot(X[:, i], X[:, j]))
-            res[:, i] += gamma[j]*vec
-            res[:, j] -= gamma[i]*vec
-
-    return res
-
-
 @cython.boundscheck(False) 
 @cython.wraparound(False)
 cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
@@ -92,8 +64,8 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
 
     res = scaled_gradient_hamiltonian(gamma, X, sigma)
 
-    for i from 0 <= i < X.shape[1]:
-        res[:, i] = np.cross(res[:, i], X[:, i])
+    for i from 0 <= i < X.shape[0]:
+        res[i, :] = np.cross(res[i, :], X[i, :])
 
     return res
 
@@ -119,18 +91,19 @@ def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma,
 
     """
 
-    cdef int m = X.shape[0]
-    cdef int n = X.shape[1]
+    cdef int N = X.shape[0]
+    cdef int ndim = X.shape[1]
     cdef np.ndarray[DTYPE_t, ndim=1] vec 
     cdef int i, j
     cdef DTYPE_t E = 0
 
-    for i from 0 <= i < n:
-        for j from i+1 <= j < n:
-            vec = X[:, i] - X[:, j]
+    for i from 0 <= i < N:
+        for j from i+1 <= j < N:
+            vec = X[i, :] - X[j, :]
             E -= gamma[i]*gamma[j]/(4*PI)*log(2*sigma**2 + np.dot(vec, vec))
              
     return E
+
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
@@ -149,7 +122,8 @@ def vortex_moment(np.ndarray[DTYPE_t, ndim=1] gamma,
     Value of the vortex moment as a numpy three-vector.
       
     """
-    return np.tensordot(gamma, X, axes=([0], [1]))
+
+    return np.tensordot(gamma, X, axes=([0], [0]))
 
 
 
