@@ -1,39 +1,36 @@
+import sys
 import numpy as np
+import scipy.optimize as so
+from math import floor
+
+np.set_printoptions(precision=10, suppress=True)
+
 from vectors import row_product
 from su2_geometry import cayley_klein
 from continuous_vortex_system import scaled_gradient_hamiltonian
-
-from math import floor
-import scipy.optimize as so
-
-import sys
-
-np.set_printoptions(precision=10, suppress=True)
+from array_solver import FSolveArray
 
 
 class VortexIntegrator:
 
-    def __init__(self, gamma, x0, sigma=0.0, h=1e-1, verbose=False):
+    def __init__(self, gamma, sigma=0.0, h=1e-1, verbose=False):
 
         self.gamma = np.array(gamma)
-        self.x0 = np.array(x0) 
         self.sigma = sigma
         self.h = h
         self.verbose = verbose
-
         self.N = self.gamma.size
-        n, ndim = self.x0.shape
-        if n != self.N:
-            raise ValueError, "Number of vortex strengths and vortices" \
-                " does not agree."
-        if ndim != 3:
-            raise ValueError, "Vortex locations not specified as 3-vectors."
+
+        # Set up nonlinear solvers
+        size = (self.N, 3)
+        self.solver_direct  = FSolveArray(self.residue_direct, size=size)
+        self.solver_adjoint = FSolveArray(self.residue_adjoint, size=size)
 
 
     def iteration_direct(self, b, x0):
         """Return update for `b` via direct fixed-point equation."""
 
-        a = self.h*b
+        a  = self.h*b
         x1 = cayley_klein(a, x0)
 
         gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
@@ -43,10 +40,15 @@ class VortexIntegrator:
                              x0, axis=1)
 
 
+    def residue_direct(self, b, x0):
+        """Residue for direct iteration."""
+        return b - self.iteration_direct(b, x0)
+
+
     def iteration_adjoint(self, b, x0):
         """Return update for `b` via adjoint fixed-point equation."""
     
-        a = self.h*b
+        a  = self.h*b
         x1 = cayley_klein(a, x0)
     
         gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
@@ -56,67 +58,59 @@ class VortexIntegrator:
                              x1, axis=1)
 
 
-    def flattened_optim_direct(self, b, x0):
-        b.shape = (self.N, 3)
-        res = b - self.iteration_direct(b, x0)
-        res.shape = 3*self.N
-        return res
+    def residue_adjoint(self, b, x0):
+        """Residue for adjoint iteration."""
+        return b - self.iteration_adjoint(b, x0)
 
 
-    def flattened_optim_adjoint(self, b, x0):
-        b.shape = (self.N, 3)
-        res = b - self.iteration_adjoint(b, x0)
-        res.shape = 3*self.N
-        return res
+    def integrate(self, x0, tmax=50., numpoints=100):
 
-
-    def integrate(self, tmax=50., numpoints=100):
-
-        num_inner = int(floor(tmax/(self.h*numpoints)))
+        num_inner = int(floor(tmax/(2*self.h*numpoints)))
 
         t = 0
 
-        self.vortices = np.zeros((numpoints, ) + self.x0.shape)
-        self.times = np.zeros(numpoints)
+        # Output variables
+        vortices = np.zeros((numpoints, ) + x0.shape)
+        times = np.zeros(numpoints)
 
         if self.verbose:
             print >> sys.stderr, "Entering integration loop"            
 
-        b = np.zeros(3*self.N, dtype=np.double)
+        b = np.zeros((self.N, 3), dtype=np.double)
         for k in xrange(0, numpoints):
             print >> sys.stderr, '.',
             for _ in xrange(0, num_inner):
-             
-                # Step with direct method
-                b = so.fsolve(self.flattened_optim_direct, b, 
-                              args=self.x0, xtol=1e-12)
-                b.shape = (self.N, 3)
-                self.x0 = cayley_klein(self.h*b, self.x0)
-                b.shape = 3*self.N
+
+                # Step with direct method             
+                b = self.solver_direct.fsolve(b, args=x0)
+                x0 = cayley_klein(self.h*b, x0)
 
                 # Step with adjoint method
-                b = so.fsolve(self.flattened_optim_adjoint, b, args=self.x0)
-                b.shape = (self.N, 3)                
-                self.x0 = cayley_klein(self.h*b, self.x0)
-                b.shape = 3*self.N
+                b = self.solver_adjoint.fsolve(b, args=x0)
+                x0 = cayley_klein(self.h*b, x0)
 
-  
+                # Update time step
                 t += 2*self.h
 
             # Save output
-            self.vortices[k, :, :] = self.x0
-            self.times[k] = t
+            vortices[k, :, :] = x0
+            times[k] = t
 
         print >> sys.stderr, '\n'
+        return vortices, times
 
 
 if __name__ == '__main__':
    from matlab_io import load_ic_from_matfile 
    gamma, x0, sigma = load_ic_from_matfile('collapse3py.mat')
 
-   print gamma
-   print x0
-   print sigma
+   #print gamma
+   #print x0
+   #print sigma
 
-   v = VortexIntegrator(gamma, x0, sigma=0.0, h=1e-1, verbose=False)
-   v.integrate()
+   setup = "from . import VortexIntegrator; v = VortexIntegrator(gamma, sigma=0.0, h=1e-1, verbose=False)"
+   stmt  = "v.integrate(x0)"
+
+   import timeit
+   t = timeit.Timer(stmt=stmt, setup=setup)
+   print t.timeit(number=3)
