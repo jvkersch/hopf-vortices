@@ -20,11 +20,11 @@ def save_initial_conditions(filename, gamma, X0, sigma=0.0):
                 oned_as='column')
 
 
-def load_variables_from_matfile(filename, varnames):
+def load_variables(filename, varnames):
     c = sio.loadmat(filename)
     return [c[name] for name in varnames]
 
 
-def save_variables_to_matfile(filename, vardict):
+def save_variables(filename, vardict):
     sio.savemat(filename, vardict, oned_as='column')
 
