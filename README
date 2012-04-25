@@ -5,15 +5,10 @@ This package contains cython code implementing a geometric variational integrato
 
   [link goes here]
 
-Documentation
--------------
+Module dependencies
+-------------------
 
 Set PYTHONPATH to point to src directory:
 
-  export PYTHONPATH="$PYTHONPATH:/Users/jvkersch/Desktop/hopf_vortices/src"
+    export PYTHONPATH="$PYTHONPATH:`pwd`/src"
 
-(relative to root directory)
-
-TODO: 
- 
-  set sys.path in conf.py instead
