@@ -6,7 +6,7 @@ from numpy import linalg as LA
 from math import floor
 
 from generic_integrator import GenericIntegrator
-from continuous_vortex_system import vortex_rhs
+from ..vortices.continuous_vortex_system import vortex_rhs
 
 
 class RK4VortexIntegrator(GenericIntegrator):
