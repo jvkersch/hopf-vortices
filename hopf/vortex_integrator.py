@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import scipy.optimize as so
-from math import floor
+from math import ceil
 
 np.set_printoptions(precision=10, suppress=True)
 
@@ -65,7 +65,7 @@ class VortexIntegrator:
 
     def integrate(self, x0, tmax=50., numpoints=100):
 
-        num_inner = int(floor(tmax/(2*self.h*numpoints)))
+        num_inner = int(ceil(tmax/(2*self.h*numpoints)))
 
         t = 0
 
@@ -100,17 +100,3 @@ class VortexIntegrator:
         return vortices, times
 
 
-if __name__ == '__main__':
-   from matlab_io import load_ic_from_matfile 
-   gamma, x0, sigma = load_ic_from_matfile('collapse3py.mat')
-
-   #print gamma
-   #print x0
-   #print sigma
-
-   setup = "from . import VortexIntegrator; v = VortexIntegrator(gamma, sigma=0.0, h=1e-1, verbose=False)"
-   stmt  = "v.integrate(x0)"
-
-   import timeit
-   t = timeit.Timer(stmt=stmt, setup=setup)
-   print t.timeit(number=3)

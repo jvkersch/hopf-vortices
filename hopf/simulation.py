@@ -1,17 +1,15 @@
-import sys
-sys.path.append('../src')
-
 import numpy as np
 from vortex_integrator import VortexIntegrator
-from matlab_io import load_initial_conditions, save_variables_to_matfile
+from rk4_integrator import RK4VortexIntegrator
+from matlab_io import load_initial_conditions, save_variables
 from continuous_vortex_system import vortex_hamiltonian, vortex_moment
 
 
-def make_output_filename(base_name):
+def make_output_filename(base_name, postfix):
     import os.path
     head, tail = os.path.split(base_name)
     root, ext  = os.path.splitext(tail)
-    new_filename = root + '_sim' + ext
+    new_filename = root + '_' + postfix + ext
     return os.path.join(head, new_filename)
 
 class Simulation:
@@ -31,11 +29,18 @@ class Simulation:
         self.N = self.X0.shape[0]
 
 
-    def run_simulation(self, tmax=20., h=.1, d=.0, numpoints=100, sim='sphere'):
+    def run_simulation(self, tmax=20., h=.1, numpoints=100, sim='sphere'):
         if self.gamma is None or self.X0 is None:
             raise ValueError, "Initial conditions not set."
 
-        v = VortexIntegrator(self.gamma, self.sigma, h)
+        self.sim_type = sim
+        if sim == 'sphere':
+            v = VortexIntegrator(self.gamma, self.sigma, h)
+        elif sim == 'rk4':
+            v = RK4VortexIntegrator(self.gamma, self.sigma, h)
+        else:
+            raise ValueError, "Simulator %s not available." % sim
+
         [self.vortices, self.times] = v.integrate(self.X0, tmax, numpoints)
 
 
@@ -52,18 +57,20 @@ class Simulation:
             self.moments[k] = vortex_moment(self.gamma, vortex)
 
 
-    def save_results(self, outfile=None):
+    def save_results(self, output_filename=None):
         
         if self.times is None or self.vortices is None:
             raise ValueError, "Simulation must be run before "\
                 " saving results."
 
-        output_filename = make_output_filename(self.ic_file)
-        save_variables_to_matfile(output_filename,
-                                  {'vortices': self.vortices, 
-                                   'times': self.times,
-                                   'energies': self.energies,
-                                   'moments': self.moments})
+        if output_filename is None:
+            output_filename = make_output_filename(self.ic_file, self.sim_type)
+
+        save_variables(output_filename,
+                       {'vortices': self.vortices, 
+                        'times': self.times,
+                        'energies': self.energies,
+                        'moments': self.moments})
 
 
 if __name__ == '__main__':

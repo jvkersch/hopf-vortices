@@ -54,8 +54,8 @@ class RK4VortexIntegrator:
                 t += self.h
 
             # Save output
-            self.vortices[k, :, :] = X0
-            self.times[k] = t
+            vortices[k, :, :] = X0
+            times[k] = t
 
         print >> sys.stderr, '\n'
         return vortices, times

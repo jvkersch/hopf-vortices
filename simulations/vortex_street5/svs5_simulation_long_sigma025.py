@@ -3,13 +3,15 @@ from simulation import Simulation
 # Sphere integrator
 s = Simulation()
 s.load_initial_conditions('svs5_poles.mat')
-s.run_simulation(tmax=100, sim='sphere')
+s.sigma = 0.25
+s.run_simulation(h=0.3, tmax=1000, sim='sphere')
 s.post_process()
-s.save_results()
+s.save_results('svs5_poles_sphere_long.mat')
 
 # RK4 integrator
 s = Simulation()
 s.load_initial_conditions('svs5_poles.mat')
-s.run_simulation(tmax=100, sim='rk4')
+s.sigma = 0.25
+s.run_simulation(h=0.3, tmax=1000, sim='rk4')
 s.post_process()
-s.save_results()
+s.save_results('svs5_poles_rk4_long.mat')

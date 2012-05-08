@@ -1,6 +1,8 @@
 import scipy.optimize as so
 import numpy as np
 
+np.set_printoptions(precision=20)
+
 class FSolveArray:
     """
     Solve nonlinear equation where variables are 2D numpy arrays.
@@ -38,7 +40,10 @@ class FSolveArray:
         x0 = np.array(x0)
         x0.shape = self.output_size
 
-        res = so.fsolve(self.fun_flattened, x0, **kwargs)
+        res, infodict, ier, msg = so.fsolve(self.fun_flattened, x0, 
+                                            full_output=True, **kwargs)
+        #print np.max(np.abs(infodict['fvec']))
+
         res.shape = self.size
         return res
 

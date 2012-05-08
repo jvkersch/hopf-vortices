@@ -290,7 +290,8 @@ def cayley_klein(a, x):
         8.*row_product(dot_ax, a) - \
         4.*row_product(norms2, x)
 
-    return row_product(1./(1. + norms2)**2, tmp)
+    tmp = row_product(1./(1. + norms2)**2, tmp)
+    return normalize(tmp)
 
 
 def hopf(psi):
