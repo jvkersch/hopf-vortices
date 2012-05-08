@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import scipy.optimize as so
-from math import ceil
+
 
 # TODO: here there should probably not be any mention of point vortices
 
@@ -23,7 +23,7 @@ class GenericIntegrator:
 
     def integrate(self, X0, tmax=50., numpoints=100):
 
-        num_inner = int(floor(tmax/(self.h*numpoints)))
+        num_inner = int(round(tmax/(self.h*numpoints)))
         t = 0
 
         vortices = np.zeros((numpoints, ) + X0.shape)
