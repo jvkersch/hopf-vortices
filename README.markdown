@@ -8,7 +8,7 @@ This package contains cython code implementing a geometric variational integrato
 Module dependencies
 -------------------
 
-Set PYTHONPATH to point to src directory:
+Set PYTHONPATH to point to the hopf directory:
 
-    export PYTHONPATH="$PYTHONPATH:`pwd`/src"
+    export PYTHONPATH="$PYTHONPATH:`pwd`"
 
