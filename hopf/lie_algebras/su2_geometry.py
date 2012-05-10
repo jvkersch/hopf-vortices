@@ -1,5 +1,6 @@
 import numpy as np
-from vectors import normalize, is_float_equal, row_product
+
+from ..util.vectors import normalize, is_float_equal, row_product
 
 # Pauli matrices
 pauli = np.empty((2, 2, 3), dtype=complex)

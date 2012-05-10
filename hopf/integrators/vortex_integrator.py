@@ -1,17 +1,19 @@
 #import sys
-#import numpy as np
-#import scipy.optimize as so
+import numpy as np
+import scipy.optimize as so
 #from math import ceil
 
 from generic_integrator import GenericIntegrator
 from ..vortices.continuous_vortex_system import vortex_rhs
 
 # TODO Method docstrings are horrible
+# TODO Can we bring some clarity into the morass of different optimization methods?
 
-from vectors import row_product
-from su2_geometry import cayley_klein
-from continuous_vortex_system import scaled_gradient_hamiltonian
-from array_solver import FSolveArray
+from ..util.vectors import row_product
+from ..util.array_solver import FSolveArray
+from ..lie_algebras.su2_geometry import cayley_klein
+from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
+
 
 
 class VortexIntegrator(GenericIntegrator):
@@ -27,17 +29,21 @@ class VortexIntegrator(GenericIntegrator):
         self.solver_direct  = FSolveArray(self.residue_direct, size=size)
         self.solver_adjoint = FSolveArray(self.residue_adjoint, size=size)
 
+        # Initial choice for update element
+        self.b = np.zeros((self.N, 3), dtype=np.double)
+
         # Initialize base class
         # Note that since this is a composition method, each iteration 
         # will take two steps of size h, resulting in an overall time 
         # step per iteration of 2*h
+        self.half_time = h
         GenericIntegrator.__init__(self, 2*h, verbose)
 
 
     def iteration_direct(self, b, x0):
         """Return update for `b` via direct fixed-point equation."""
 
-        a  = self.h*b
+        a  = self.half_time*b
         x1 = cayley_klein(a, x0)
 
         gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
@@ -55,7 +61,7 @@ class VortexIntegrator(GenericIntegrator):
     def iteration_adjoint(self, b, x0):
         """Return update for `b` via adjoint fixed-point equation."""
     
-        a  = self.h*b
+        a  = self.half_time*b
         x1 = cayley_klein(a, x0)
     
         gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
@@ -70,40 +76,16 @@ class VortexIntegrator(GenericIntegrator):
         return b - self.iteration_adjoint(b, x0)
 
 
-    def integrate(self, x0, tmax=50., numpoints=100):
+    def do_one_step(self, x0):
 
-        num_inner = int(ceil(tmax/(2*self.h*numpoints)))
+        # Step with direct method             
+        self.b = self.solver_direct.fsolve(self.b, args=x0)
+        x0 = cayley_klein(self.half_time*self.b, x0)
 
-        t = 0
+        # Step with adjoint method
+        self.b = self.solver_adjoint.fsolve(self.b, args=x0)
+        x0 = cayley_klein(self.half_time*self.b, x0)
 
-        # Output variables
-        vortices = np.zeros((numpoints, ) + x0.shape)
-        times = np.zeros(numpoints)
-
-        if self.verbose:
-            print >> sys.stderr, "Entering integration loop"            
-
-        b = np.zeros((self.N, 3), dtype=np.double)
-        for k in xrange(0, numpoints):
-            print >> sys.stderr, '.',
-            for _ in xrange(0, num_inner):
-
-                # Step with direct method             
-                b = self.solver_direct.fsolve(b, args=x0)
-                x0 = cayley_klein(self.h*b, x0)
-
-                # Step with adjoint method
-                b = self.solver_adjoint.fsolve(b, args=x0)
-                x0 = cayley_klein(self.h*b, x0)
-
-                # Update time step
-                t += 2*self.h
-
-            # Save output
-            vortices[k, :, :] = x0
-            times[k] = t
-
-        print >> sys.stderr, '\n'
-        return vortices, times
+        return x0
 
 

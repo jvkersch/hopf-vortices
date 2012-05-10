@@ -1,8 +1,8 @@
 import numpy as np
-from vortex_integrator import VortexIntegrator
-from rk4_integrator import RK4VortexIntegrator
-from matlab_io import load_initial_conditions, save_variables
-from continuous_vortex_system import vortex_hamiltonian, vortex_moment
+from .integrators.vortex_integrator import VortexIntegrator
+from .integrators.rk4_integrator import RK4VortexIntegrator
+from .util.matlab_io import load_initial_conditions, save_variables
+from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
 
 
 def make_output_filename(base_name, postfix):
@@ -11,6 +11,7 @@ def make_output_filename(base_name, postfix):
     root, ext  = os.path.splitext(tail)
     new_filename = root + '_' + postfix + ext
     return os.path.join(head, new_filename)
+
 
 class Simulation:
 
