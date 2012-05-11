@@ -1,5 +1,5 @@
 import scipy.io as sio 
-
+import os.path
 
 def load_initial_conditions(filename):
     c = sio.loadmat(filename)
@@ -16,8 +16,9 @@ def load_initial_conditions(filename):
 
 
 def save_initial_conditions(filename, gamma, X0, sigma=0.0):
-    sio.savemat(filename, {'X0': X0, 'gamma': gamma, 'sigma' : sigma}, 
-                oned_as='column')
+
+    vardict = {'X0': X0, 'gamma': gamma, 'sigma' : sigma}
+    save_variables(filename, vardict)
 
 
 def load_variables(filename, varnames):
@@ -26,5 +27,10 @@ def load_variables(filename, varnames):
 
 
 def save_variables(filename, vardict):
+    # Create directory if it doesn't exist
+    base = os.path.dirname(filename)
+    if not os.path.exists(base):
+        os.makedirs(base)
+
     sio.savemat(filename, vardict, oned_as='column')
 
