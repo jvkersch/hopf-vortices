@@ -16,12 +16,14 @@ class GenericIntegrator:
         self.verbose = verbose
 
 
-    def do_one_step(self, X0):
+    def do_one_step(self, t, X0):
         """Integrate for one timestep with chosen method.  To be overrided."""
         raise NotImplementedError("Method should be overrided in base class.")
 
 
-    def integrate(self, X0, tmax=50., numpoints=100):
+    def integrate(self, psi0, X0, tmax=50., numpoints=100, **kwargs):
+
+        # psi gets ignored...
 
         num_inner = int(round(tmax/(self.h*numpoints)))
         t = 0
@@ -35,14 +37,13 @@ class GenericIntegrator:
         for k in xrange(0, numpoints):
             print >> sys.stderr, '.',
             for _ in xrange(0, num_inner):
-                X0 = self.do_one_step(X0)
+                X0 = self.do_one_step(t, X0)
                 t += self.h
 
             # Save output
             vortices[k, :, :] = X0
             times[k] = t
 
+
         print >> sys.stderr, '\n'
         return vortices, times
-
-

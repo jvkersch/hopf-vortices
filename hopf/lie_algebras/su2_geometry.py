@@ -254,12 +254,42 @@ def cayley_klein(a):
     U[:, 0, 0] = np.ones(N)
     U[:, 1, 1] = np.ones(N)
 
-    U = row_product(1-norms2, U) + 2*A
-    U = row_product(1./(1+norms2), U)
+    U = np.einsum('a, abc -> abc', 1-norms2, U) + 2*A
+    U = np.einsum('a, abc -> abc', 1./(1+norms2), U)
 
     return U
 
-def cayley_klein(a, x):
+
+def apply_2by2(U, psi):
+    r"""Apply the matrices in `U' to the vectors in `psi' along axis 0.
+
+    Examples
+    --------
+
+    Check output with direct loop computation:
+
+    >>> U = np.empty((3, 2, 2), np.double)
+    >>> U[0, :, :] = [[1, 2], [3, 4]]
+    >>> U[1, :, :] = [[10, 11], [12, 13]]
+    >>> U[2, :, :] = [[20, 21], [22, 23]]
+    >>> psi = np.array([[30, 29], [28, 27], [26, 25]], np.double)
+    array([[   88.,   206.],
+           [  577.,   687.],
+           [ 1045.,  1147.]])
+    >>> psi2 = np.empty((3, 2), np.double)
+    >>> for k in xrange(0, 3): psi2[k, :] = np.dot(U[k, :, :], psi[k, :])
+    >>> psi2 
+    array([[   88.,   206.],
+           [  577.,   687.],
+           [ 1045.,  1147.]])
+
+    """
+
+    return np.einsum('abc, ac -> ab', U, psi)
+
+
+
+def cayley_klein_vectorial(a, x):
     r"""Apply the Cayley-Klein map directly to a set of vectors `x`.
 
     TODO: might be slow

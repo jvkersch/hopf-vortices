@@ -23,13 +23,19 @@ def save_initial_conditions(filename, gamma, X0, sigma=0.0):
 
 def load_variables(filename, varnames):
     c = sio.loadmat(filename)
-    return [c[name] for name in varnames]
+    old_vars = [c[name] for name in varnames]
+    new_vars = []
+    for var in old_vars: # Remove spurious dimensions
+        new_shape = tuple(t for t in var.shape if t != 1)
+        var.shape = new_shape
+        new_vars.append(var)
+    return new_vars
 
 
 def save_variables(filename, vardict):
     # Create directory if it doesn't exist
     base = os.path.dirname(filename)
-    if not os.path.exists(base):
+    if len(base) > 0 and not os.path.exists(base):
         os.makedirs(base)
 
     sio.savemat(filename, vardict, oned_as='column')

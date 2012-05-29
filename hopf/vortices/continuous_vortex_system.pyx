@@ -123,7 +123,13 @@ def vortex_moment(np.ndarray[DTYPE_t, ndim=1] gamma,
       
     """
 
-    return np.tensordot(gamma, X, axes=([0], [0]))
+    cdef int i
+    cdef np.ndarray[DTYPE_t, ndim=1] m = np.empty((3, ), dtype=DTYPE)
+
+    for i from 0 <= i < 3:
+        m[i] = np.sum(gamma*X[:, i])
+
+    return m
 
 
 

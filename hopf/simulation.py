@@ -1,7 +1,7 @@
 import numpy as np
 from .integrators.vortex_integrator import VortexIntegrator
 from .integrators.rk4_integrator import RK4VortexIntegrator
-from .util.matlab_io import load_initial_conditions, save_variables
+from .util.matlab_io import load_initial_conditions, save_variables, load_variables
 from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
 
 
@@ -20,8 +20,8 @@ class Simulation:
         self.ic_file = filename
 
         try: 
-            self.gamma, self.X0, self.sigma = \
-                load_initial_conditions(filename)
+            self.gamma, self.X0, self.psi0, self.sigma = \
+                load_variables(filename, ['gamma', 'X0', 'psi', 'sigma'])
         except OSError:
             print "Could not load initial conditions from %s." \
                 % filename
@@ -42,7 +42,7 @@ class Simulation:
         else:
             raise ValueError, "Simulator %s not available." % sim
 
-        [self.vortices, self.times] = v.integrate(self.X0, tmax, numpoints)
+        [self.vortices, self.vortices_S3, self.times] = v.integrate(self.psi0, self.X0, tmax, numpoints, full_output=True)
 
 
     def post_process(self):
