@@ -46,4 +46,4 @@ class GenericIntegrator:
 
 
         print >> sys.stderr, '\n'
-        return vortices, times
+        return vortices, None, times

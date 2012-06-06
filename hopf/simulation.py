@@ -1,8 +1,11 @@
 import numpy as np
 from .integrators.vortex_integrator import VortexIntegrator
 from .integrators.rk4_integrator import RK4VortexIntegrator
-from .util.matlab_io import load_initial_conditions, save_variables, load_variables
+from .integrators.lie_poisson_integrator import LiePoissonIntegrator
+from .util.matlab_io import (load_initial_conditions, save_variables, 
+                             load_variables)
 from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
+
 
 
 def make_output_filename(base_name, postfix):
@@ -21,7 +24,7 @@ class Simulation:
 
         try: 
             self.gamma, self.X0, self.psi0, self.sigma = \
-                load_variables(filename, ['gamma', 'X0', 'psi', 'sigma'])
+                load_variables(filename, ['gamma', 'X0', 'psi0', 'sigma'])
         except OSError:
             print "Could not load initial conditions from %s." \
                 % filename
@@ -39,10 +42,13 @@ class Simulation:
             v = VortexIntegrator(self.gamma, self.sigma, h)
         elif sim == 'rk4':
             v = RK4VortexIntegrator(self.gamma, self.sigma, h)
+        elif sim == 'lie-poisson':
+            v = LiePoissonIntegrator(self.gamma, self.sigma, h)
         else:
             raise ValueError, "Simulator %s not available." % sim
 
-        [self.vortices, self.vortices_S3, self.times] = v.integrate(self.psi0, self.X0, tmax, numpoints, full_output=True)
+        [self.vortices, self.vortices_S3, self.times] = \
+            v.integrate(self.psi0, self.X0, tmax, numpoints, full_output=True)
 
 
     def post_process(self):

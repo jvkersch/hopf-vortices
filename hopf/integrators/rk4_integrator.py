@@ -17,7 +17,7 @@ class RK4VortexIntegrator(GenericIntegrator):
 
         GenericIntegrator.__init__(self, h, verbose)
 
-    def do_one_step(self, X0):
+    def do_one_step(self, t, X0):
         """Integrate the point vortex equations forward in time by means 
         of a simple RK4 algorithm followed by projection onto the sphere."""
 
