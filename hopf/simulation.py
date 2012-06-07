@@ -7,7 +7,6 @@ from .util.matlab_io import (load_initial_conditions, save_variables,
 from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
 
 
-
 def make_output_filename(base_name, postfix):
     import os.path
     head, tail = os.path.split(base_name)
@@ -23,8 +22,8 @@ class Simulation:
         self.ic_file = filename
 
         try: 
-            self.gamma, self.X0, self.psi0, self.sigma = \
-                load_variables(filename, ['gamma', 'X0', 'psi0', 'sigma'])
+            self.gamma, self.X0, self.sigma = \
+                load_variables(filename, ['gamma', 'X0', 'sigma'])
         except OSError:
             print "Could not load initial conditions from %s." \
                 % filename
@@ -47,8 +46,8 @@ class Simulation:
         else:
             raise ValueError, "Simulator %s not available." % sim
 
-        [self.vortices, self.vortices_S3, self.times] = \
-            v.integrate(self.psi0, self.X0, tmax, numpoints, full_output=True)
+        [self.vortices, self.times] = \
+            v.integrate(self.X0, tmax, numpoints, full_output=True)
 
 
     def post_process(self):

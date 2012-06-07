@@ -21,9 +21,7 @@ class GenericIntegrator:
         raise NotImplementedError("Method should be overrided in base class.")
 
 
-    def integrate(self, psi0, X0, tmax=50., numpoints=100, **kwargs):
-
-        # psi gets ignored...
+    def integrate(self, X0, tmax=50., numpoints=100, **kwargs):
 
         num_inner = int(round(tmax/(self.h*numpoints)))
         t = 0
@@ -46,4 +44,4 @@ class GenericIntegrator:
 
 
         print >> sys.stderr, '\n'
-        return vortices, None, times
+        return vortices, times

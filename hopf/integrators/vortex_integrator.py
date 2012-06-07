@@ -11,7 +11,8 @@ from ..vortices.continuous_vortex_system import vortex_rhs
 
 from ..util.vectors import row_product
 from ..util.array_solver import FSolveArray
-from ..lie_algebras.su2_geometry import cayley_klein, apply_2by2, hopf
+from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
+                                         inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 
 
@@ -87,15 +88,15 @@ class VortexIntegrator:
         return b - self.iteration_adjoint(b, psi0, x0)
 
 
-    def integrate(self, psi0, X0, tmax=50., numpoints=100, full_output=False):
+    def integrate(self, X0, tmax=50., numpoints=100, full_output=False):
 
         num_inner = int(round(tmax/(self.h*numpoints)))
         t = 0
 
         vortices = np.zeros((numpoints, ) + X0.shape)
-        vortices_S3 = np.zeros((numpoints, ) + psi0.shape, np.complex)
         times = np.zeros(numpoints)
 
+        psi0 = inverse_hopf(X0)
 
         if self.verbose:
             print >> sys.stderr, "Entering integration loop"
@@ -108,16 +109,11 @@ class VortexIntegrator:
 
             # Save output
             vortices[k, :, :] = X0
-            vortices_S3[k, :, :] = psi0
             times[k] = t
 
 
         print >> sys.stderr, '\n'
-        
-        if full_output:
-            return vortices, vortices_S3, times
-        else:
-            return vortices, times
+        return vortices, times
 
 
     def do_one_step(self, t, psi0, x0):
