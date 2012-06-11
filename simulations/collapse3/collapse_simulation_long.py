@@ -24,6 +24,6 @@ s.save_results('data/collapse3_lp_sigma10_sim_long.mat')
 
 # Midpoint, medium regularization
 s.sigma = 0.10
-s.run_simulation(tmax=500, numpoints=500, sim='lie-poisson')
+s.run_simulation(tmax=500, numpoints=500, sim='midpoint')
 s.post_process()
 s.save_results('data/collapse3_mp_sigma10_sim_long.mat')

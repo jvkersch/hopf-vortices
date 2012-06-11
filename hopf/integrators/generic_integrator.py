@@ -2,8 +2,7 @@ import sys
 import numpy as np
 import scipy.optimize as so
 
-
-# TODO: here there should probably not be any mention of point vortices
+from .diagnostics import Diagnostics
 
 
 class GenericIntegrator:
@@ -14,7 +13,6 @@ class GenericIntegrator:
 
         self.h = h
         self.verbose = verbose
-
 
     def do_one_step(self, t, X0):
         """Integrate for one timestep with chosen method.  To be overrided."""
