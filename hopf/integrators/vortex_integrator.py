@@ -15,7 +15,7 @@ from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf,
                                          inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 
-from .diagnostics import Diagnostics
+#from .diagnostics import Diagnostics
 
 
 class VortexIntegrator:
@@ -121,25 +121,25 @@ class VortexIntegrator:
 
         # TODO record residuals for later inspection
 
-        c = Callback()
+        #c = Callback()
 
         f = lambda y: self.residue_direct(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=c.callback)
+        self.b = so.broyden1(f, self.b, f_tol=1e-8)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
-        print "Iterations: %d." % c.niter
-        c.reset()
+        #print "Iterations: %d." % c.niter
+        #c.reset()
 
         f = lambda y: self.residue_adjoint(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=c.callback)
+        self.b = so.broyden1(f, self.b, f_tol=1e-8)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
-        print "Iterations: %d." % c.niter
-        c.reset()
+        #print "Iterations: %d." % c.niter
+        #c.reset()
 
         return psi0, x0
 

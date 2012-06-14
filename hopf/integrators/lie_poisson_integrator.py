@@ -8,7 +8,7 @@ from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from .vectorized_so3 import vector_hatmap, vector_invhat
 from .generic_integrator import GenericIntegrator
 
-from .diagnostics import Diagnostics
+#from .diagnostics import Diagnostics
 
 # Legacy class from way back in the days.  Has the same calling conventions as
 # the other integrators, but that's about it.
@@ -37,11 +37,11 @@ class LiePoissonIntegrator(GenericIntegrator):
             return res
 
 
-        d = Diagnostics()
+        #d = Diagnostics()
 
-        rho1 = broyden1(optimization_function, rho0, f_tol=1e-14, callback=d.callback)
+        rho1 = broyden1(optimization_function, rho0, f_tol=1e-8)
 
-        print d.n_current
+        #print d.n_current
 
 
         return vector_invhat(rho1, self.gamma)

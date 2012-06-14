@@ -24,7 +24,7 @@ class MidpointIntegrator(GenericIntegrator):
         def optimization_function(X1):
             return X1 - X0 - self.h*vortex_rhs(self.gamma,(X0+X1)/2,self.sigma)
 
-        X1 = broyden1(optimization_function, X0, f_tol=1e-14, verbose=True)
+        X1 = broyden1(optimization_function, X0, f_tol=1e-8)
 
         # Project down to the sphere
         for k in xrange(0, X1.shape[0]):
