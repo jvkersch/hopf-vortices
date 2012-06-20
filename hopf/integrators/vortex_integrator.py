@@ -15,12 +15,13 @@ from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf,
                                          inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 
-#from .diagnostics import Diagnostics
+from .diagnostics import BroydenDiagnostics
 
 
 class VortexIntegrator:
 
-    def __init__(self, gamma, sigma=0.0, h=1e-1, verbose=False):
+    def __init__(self, gamma, sigma=0.0, h=1e-1, 
+                 verbose=False, diagnostics=False):
 
         self.gamma = np.array(gamma)
         self.sigma = sigma
@@ -37,8 +38,6 @@ class VortexIntegrator:
         # Initial choice for update element
         self.b = np.zeros((self.N, 3), dtype=np.double)
 
-
-
         # Initialize base class
         # Note that since this is a composition method, each iteration 
         # will take two steps of size h, resulting in an overall time 
@@ -47,6 +46,9 @@ class VortexIntegrator:
         self.h = 2*h
         self.verbose = verbose
 
+        # Keep track of nonlinear convergence
+        self.diagnostics = diagnostics
+        self.diagnostics_logger = BroydenDiagnostics()
 
 
     def iteration_direct(self, b, psi0, x0):
@@ -121,25 +123,30 @@ class VortexIntegrator:
 
         # TODO record residuals for later inspection
 
-        #c = Callback()
+        callback = None
+        if self.diagnostics:
+            callback = self.diagnostics_logger
+
 
         f = lambda y: self.residue_direct(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-8)
+        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=callback)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
+        self.diagnostics_logger.store()
         #print "Iterations: %d." % c.niter
         #c.reset()
 
         f = lambda y: self.residue_adjoint(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-8)
+        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=callback)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
         #print "Iterations: %d." % c.niter
         #c.reset()
+        self.diagnostics_logger.store()
 
         return psi0, x0
 

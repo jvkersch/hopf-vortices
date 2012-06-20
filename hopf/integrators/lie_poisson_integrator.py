@@ -8,18 +8,22 @@ from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from .vectorized_so3 import vector_hatmap, vector_invhat
 from .generic_integrator import GenericIntegrator
 
-#from .diagnostics import Diagnostics
+from .diagnostics import BroydenDiagnostics
 
 # Legacy class from way back in the days.  Has the same calling conventions as
 # the other integrators, but that's about it.
 
 
 class LiePoissonIntegrator(GenericIntegrator):
-    def __init__(self, gamma, sigma, h, verbose=False):
+    def __init__(self, gamma, sigma, h, verbose=False, diagnostics=False):
 
         self.gamma = np.array(gamma)
         self.sigma = sigma
         self.N = len(self.gamma)
+
+        # Keep track of nonlinear convergence
+        self.diagnostics = diagnostics
+        self.diagnostics_logger = BroydenDiagnostics()
 
         GenericIntegrator.__init__(self, h, verbose)
 
@@ -27,6 +31,10 @@ class LiePoissonIntegrator(GenericIntegrator):
 
         rho0 = vector_hatmap(X0, self.gamma)
         grad = self.gradient_hamiltonian(rho0)
+
+        callback = None
+        if self.diagnostics:
+            callback = self.diagnostics_logger
 
         def optimization_function(rho1):
             s = grad + self.gradient_hamiltonian(rho1)
@@ -39,7 +47,9 @@ class LiePoissonIntegrator(GenericIntegrator):
 
         #d = Diagnostics()
 
-        rho1 = broyden1(optimization_function, rho0, f_tol=1e-8)
+        rho1 = broyden1(optimization_function, rho0, f_tol=1e-14, callback=callback)
+        self.diagnostics_logger.store()
+
 
         #print d.n_current
 

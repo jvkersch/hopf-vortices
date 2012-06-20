@@ -33,24 +33,33 @@ class Simulation:
         self.N = self.X0.shape[0]
 
 
-    def run_simulation(self, tmax=20., h=.1, numpoints=100, sim='sphere'):
+    def run_simulation(self, tmax=20., h=.1, numpoints=100, sim='sphere', diagnostics=False):
+
         if self.gamma is None or self.X0 is None:
             raise ValueError, "Initial conditions not set."
 
+        # TODO: add logging everywhere
+
         self.sim_type = sim
         if sim == 'sphere':
-            v = VortexIntegrator(self.gamma, self.sigma, h)
+            v = VortexIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
         elif sim == 'rk4':
             v = RK4VortexIntegrator(self.gamma, self.sigma, h)
         elif sim == 'lie-poisson':
-            v = LiePoissonIntegrator(self.gamma, self.sigma, h)
+            v = LiePoissonIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
         elif sim == 'midpoint':
-            v = MidpointIntegrator(self.gamma, self.sigma, h)
+            v = MidpointIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
         else:
             raise ValueError, "Simulator %s not available." % sim
 
         [self.vortices, self.times] = \
             v.integrate(self.X0, tmax, numpoints, full_output=True)
+
+        self.diagnostics=diagnostics
+        if diagnostics:
+            self.number_iterations, self.residues = \
+                np.array(v.diagnostics_logger.number_iterations), \
+                np.array(v.diagnostics_logger.residues)
 
 
     def post_process(self):
@@ -75,12 +84,15 @@ class Simulation:
         if output_filename is None:
             output_filename = make_output_filename(self.ic_file, self.sim_type)
 
-        save_variables(output_filename,
-                       {'vortices': self.vortices, 
-                        'times': self.times,
-                        'energies': self.energies,
-                        'moments': self.moments})
+        variables = {'vortices': self.vortices, 'times': self.times,
+                     'energies': self.energies, 'moments': self.moments}
 
+        if self.diagnostics:
+            variables['number_iterations'] = self.number_iterations
+            variables['residues'] = self.residues
+
+        save_variables(output_filename, variables)
+                       
 
 if __name__ == '__main__':
     

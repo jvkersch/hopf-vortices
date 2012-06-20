@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import scipy.optimize as so
 
-from .diagnostics import Diagnostics
+
 
 
 class GenericIntegrator:

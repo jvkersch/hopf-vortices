@@ -1,23 +1,25 @@
 import numpy as np
 
-class Diagnostics:
+class BroydenDiagnostics:
     def __init__(self):
 
-        self.niter = []
-        self.res   = []
+        self.number_iterations = []
+        self.residues   = []
 
         self.n_current = 0
         self.res_current = 0.0
 
-    def new_frame(self):
-        self.niter.append(self.n_current)
-        self.res.append(self.res_current)
+    def __call__(self, x, f):
+        """See documentation for ``scipy.optimize.broyden1`` 
+        for more information."""
 
-        self.n_current = 0
-        self.res_current = 0.0
-
-    def callback(self, x, f):
         self.n_current += 1
         self.res_current = f
 
+    def store(self):
 
+        self.number_iterations.append(self.n_current)
+        self.residues.append(self.res_current)
+
+        self.n_current = 0
+        self.res_current = -1

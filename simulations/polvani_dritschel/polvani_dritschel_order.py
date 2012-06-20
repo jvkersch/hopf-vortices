@@ -7,7 +7,7 @@ import scipy
 s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
-for n, h in enumerate(logspace(-3, -1, 10)):
+for n, h in enumerate(logspace(-4, -1, 10)):
     s.run_simulation(tmax=50, h=h, sim='sphere')
     s.post_process()
 
@@ -20,8 +20,10 @@ for n, h in enumerate(logspace(-3, -1, 10)):
 s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
-for n, h in enumerate(logspace(-3, -1, 10)):
+for n, h in enumerate(logspace(-4, -1, 10)):
     try:
+	if n == 0: continue
+
         s.run_simulation(tmax=50, h=h, sim='lie-poisson')
         s.post_process()
 
@@ -37,7 +39,7 @@ for n, h in enumerate(logspace(-3, -1, 10)):
 s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
-for n, h in enumerate(logspace(-3, -1, 10)):
+for n, h in enumerate(logspace(-4, -1, 10)):
     s.run_simulation(tmax=50, h=h, sim='midpoint')
     s.post_process()
 
