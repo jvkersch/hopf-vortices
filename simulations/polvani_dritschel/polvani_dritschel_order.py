@@ -8,7 +8,7 @@ s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
 for n, h in enumerate(logspace(-4, -1, 10)):
-    s.run_simulation(tmax=50, h=h, sim='sphere')
+    s.run_simulation(tmax=10, h=h, sim='sphere', diagnostics=True)
     s.post_process()
 
     filename = 'data/pd_sphere_order_%d.mat' % n
@@ -22,9 +22,7 @@ s.load_initial_conditions('pd_initial_conditions.mat')
 
 for n, h in enumerate(logspace(-4, -1, 10)):
     try:
-	if n == 0: continue
-
-        s.run_simulation(tmax=50, h=h, sim='lie-poisson')
+        s.run_simulation(tmax=10, h=h, sim='lie-poisson', diagnostics=True)
         s.post_process()
 
         filename = 'data/pd_lp_order_%d.mat' % n
@@ -40,7 +38,7 @@ s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
 for n, h in enumerate(logspace(-4, -1, 10)):
-    s.run_simulation(tmax=50, h=h, sim='midpoint')
+    s.run_simulation(tmax=10, h=h, sim='midpoint', diagnostics=True)
     s.post_process()
 
     filename = 'data/pd_mp_order_%d.mat' % n

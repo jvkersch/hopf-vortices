@@ -27,6 +27,36 @@ class LiePoissonIntegrator(GenericIntegrator):
 
         GenericIntegrator.__init__(self, h, verbose)
 
+    def do_one_step_fixed_point(self, t, X0):
+
+        rho0 = vector_hatmap(X0, self.gamma)
+        grad = self.gradient_hamiltonian(rho0)
+
+        callback = None
+        if self.diagnostics:
+            callback = self.diagnostics_logger
+
+        def optimization_function(rho1):
+            s = grad + self.gradient_hamiltonian(rho1)
+            res  = np.empty((self.N, 3, 3))
+            for n in range(0, self.N):               
+                g = linalg.expm(-self.h/2*s[n, :, :])
+                res[n, :, :] = Ad(g, rho0[n, :, :])
+            return res
+
+
+        #d = Diagnostics()
+
+
+        rho1 = fixed_point(optimization_function, rho0)
+        
+
+        #self.diagnostics_logger.store()
+
+        return vector_invhat(rho1, self.gamma)
+
+
+
     def do_one_step(self, t, X0):
 
         rho0 = vector_hatmap(X0, self.gamma)

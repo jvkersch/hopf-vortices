@@ -18,6 +18,10 @@ from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from .diagnostics import BroydenDiagnostics
 
 
+N = 0
+
+
+
 class VortexIntegrator:
 
     def __init__(self, gamma, sigma=0.0, h=1e-1, 
@@ -54,6 +58,10 @@ class VortexIntegrator:
     def iteration_direct(self, b, psi0, x0):
         """Return update for `b` via direct fixed-point equation."""
 
+        global N
+
+        N += 1
+
         a = self.half_time*b
         U = cayley_klein(a)
         psi1 = apply_2by2(U, psi0)
@@ -73,6 +81,9 @@ class VortexIntegrator:
 
     def iteration_adjoint(self, b, psi0, x0):
         """Return update for `b` via adjoint fixed-point equation."""
+
+        global N 
+        N += 1
     
         a = self.half_time*b
         U = cayley_klein(a)
@@ -119,6 +130,39 @@ class VortexIntegrator:
         return vortices, times
 
 
+    def do_one_step2(self, t, psi0, x0):
+
+        global N
+
+        # TODO record residuals for later inspection
+
+        callback = None
+        if self.diagnostics:
+            callback = self.diagnostics_logger
+
+        f = lambda y: self.iteration_direct(y, psi0, x0)
+        self.b = so.fixed_point(f, self.b, xtol=1e-9)
+        U = cayley_klein(self.half_time*self.b)
+        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)        
+
+        #print >> sys.stderr, "%d" % N
+        N = 0
+
+        f = lambda y: self.iteration_adjoint(y, psi0, x0)
+        self.b = so.fixed_point(f, self.b, xtol=1e-9)
+        U = cayley_klein(self.half_time*self.b)
+        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
+
+        #print >> sys.stderr, "%d" % N
+        N = 0
+
+
+        #print "Iterations: %d." % c.niter
+        #c.reset()
+        self.diagnostics_logger.store()
+
+        return psi0, x0
+
     def do_one_step(self, t, psi0, x0):
 
         # TODO record residuals for later inspection
@@ -149,6 +193,7 @@ class VortexIntegrator:
         self.diagnostics_logger.store()
 
         return psi0, x0
+
 
 
     def do_one_step_old(self, x0):
