@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 from scipy import linalg
-from scipy.optimize import fsolve, fixed_point, broyden1
+from scipy.optimize import fsolve, fixed_point, broyden1, newton_krylov
 
 from ..lie_algebras.adjoint import Ad
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
@@ -77,7 +77,7 @@ class LiePoissonIntegrator(GenericIntegrator):
 
         #d = Diagnostics()
 
-        rho1 = broyden1(optimization_function, rho0, f_tol=1e-14, callback=callback)
+        rho1 = newton_krylov(optimization_function, rho0, f_tol=1e-14, callback=callback)
         self.diagnostics_logger.store()
 
 

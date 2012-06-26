@@ -8,7 +8,7 @@ from math import floor
 from generic_integrator import GenericIntegrator
 from ..vortices.continuous_vortex_system import vortex_rhs
 
-from scipy.optimize import broyden1
+from scipy.optimize import broyden1, newton_krylov
 
 from .diagnostics import BroydenDiagnostics
 
@@ -36,7 +36,7 @@ class MidpointIntegrator(GenericIntegrator):
         def optimization_function(X1):
             return X1 - X0 - self.h*vortex_rhs(self.gamma,(X0+X1)/2,self.sigma)
 
-        X1 = broyden1(optimization_function, X0, f_tol=1e-14, maxiter=1000, callback=callback)
+        X1 = newton_krylov(optimization_function, X0, f_tol=1e-14, maxiter=1000, callback=callback)
         self.diagnostics_logger.store()
 
 

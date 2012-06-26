@@ -130,40 +130,22 @@ class VortexIntegrator:
         return vortices, times
 
 
-    def do_one_step2(self, t, psi0, x0):
-
-        global N
-
-        # TODO record residuals for later inspection
-
-        callback = None
-        if self.diagnostics:
-            callback = self.diagnostics_logger
+    def do_one_step_fixedpoint(self, t, psi0, x0):
 
         f = lambda y: self.iteration_direct(y, psi0, x0)
-        self.b = so.fixed_point(f, self.b, xtol=1e-9)
+        self.b = so.fixed_point(f, self.b, xtol=1e-12)
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)        
 
-        #print >> sys.stderr, "%d" % N
-        N = 0
-
         f = lambda y: self.iteration_adjoint(y, psi0, x0)
-        self.b = so.fixed_point(f, self.b, xtol=1e-9)
+        self.b = so.fixed_point(f, self.b, xtol=1e-12)
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
-        #print >> sys.stderr, "%d" % N
-        N = 0
-
-
-        #print "Iterations: %d." % c.niter
-        #c.reset()
-        self.diagnostics_logger.store()
-
         return psi0, x0
 
-    def do_one_step(self, t, psi0, x0):
+
+    def do_one_step_broyden(self, t, psi0, x0):
 
         # TODO record residuals for later inspection
 
@@ -171,9 +153,9 @@ class VortexIntegrator:
         if self.diagnostics:
             callback = self.diagnostics_logger
 
-
+        #print >> sys.stderr, "direct"
         f = lambda y: self.residue_direct(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=callback)
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback, verbose=False)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
@@ -182,8 +164,9 @@ class VortexIntegrator:
         #print "Iterations: %d." % c.niter
         #c.reset()
 
+        #print >> sys.stderr, "adjoint"
         f = lambda y: self.residue_adjoint(y, psi0, x0)
-        self.b = so.broyden1(f, self.b, f_tol=1e-14, callback=callback)
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback, verbose=False)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
@@ -194,24 +177,7 @@ class VortexIntegrator:
 
         return psi0, x0
 
+    do_one_step = do_one_step_broyden
 
-
-    def do_one_step_old(self, x0):
-
-        # Step with direct method             
-        self.b = self.solver_direct.fsolve(self.b, args=x0)
-        x0 = cayley_klein(self.half_time*self.b, x0)
-
-        res = self.residue_direct(self.b, x0)
-        self.res_direct = np.max(np.max(np.abs(res)))
-
-        # Step with adjoint method
-        self.b = self.solver_adjoint.fsolve(self.b, args=x0)
-        x0 = cayley_klein(self.half_time*self.b, x0)
-
-        res = self.residue_adjoint(self.b, x0)
-        self.res_adjoint = np.max(np.max(np.abs(res)))
-
-        return x0
 
 
