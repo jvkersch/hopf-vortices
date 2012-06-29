@@ -156,7 +156,7 @@ class VortexIntegrator:
 
         #print >> sys.stderr, "direct"
         f = lambda y: self.residue_direct(y, psi0, x0)
-        self.b = so.newton_krylov(f, self.b, f_tol=1e-14)#, callback=callback)
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
@@ -167,7 +167,7 @@ class VortexIntegrator:
 
         #print >> sys.stderr, "adjoint"
         f = lambda y: self.residue_adjoint(y, psi0, x0)
-        self.b = so.newton_krylov(f, self.b, f_tol=1e-14)#, callback=callback)
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback)
         #res = f(self.b); print np.max(np.max(np.abs(res)))
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)

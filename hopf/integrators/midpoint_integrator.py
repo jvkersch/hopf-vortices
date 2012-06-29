@@ -36,7 +36,8 @@ class MidpointIntegrator(GenericIntegrator):
         def optimization_function(X1):
             return X1 - X0 - self.h*vortex_rhs(self.gamma,(X0+X1)/2,self.sigma)
 
-        X1 = newton_krylov(optimization_function, X0, f_tol=1e-14)#, callback=callback)
+        X1 = newton_krylov(optimization_function, X0, 
+                           f_tol=1e-14, callback=callback)
         self.diagnostics_logger.store()
 
 

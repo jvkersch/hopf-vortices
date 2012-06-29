@@ -84,7 +84,7 @@ class LiePoissonIntegrator(GenericIntegrator):
 
         #d = Diagnostics()
 
-        rho1 = newton_krylov(optimization_function, rho0, f_tol=1e-14)#, callback=callback)
+        rho1 = newton_krylov(optimization_function, rho0, f_tol=1e-14, callback=callback)
         self.diagnostics_logger.store()
 
 
