@@ -4,6 +4,7 @@ from scipy import linalg
 from scipy.optimize import fsolve, fixed_point, broyden1, newton_krylov
 
 from ..lie_algebras.adjoint import Ad
+from ..lie_algebras.lie_algebra import cayley
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from .vectorized_so3 import vector_hatmap, vector_invhat
 from .generic_integrator import GenericIntegrator
@@ -40,7 +41,10 @@ class LiePoissonIntegrator(GenericIntegrator):
             s = grad + self.gradient_hamiltonian(rho1)
             res  = np.empty((self.N, 3, 3))
             for n in range(0, self.N):               
-                g = linalg.expm(-self.h/2*s[n, :, :])
+                #g = linalg.expm(-self.h/2*s[n, :, :])
+
+                g = cayley(-self.h/4*s[n, :, :])
+
                 res[n, :, :] = Ad(g, rho0[n, :, :])
             return res
 
@@ -70,14 +74,17 @@ class LiePoissonIntegrator(GenericIntegrator):
             s = grad + self.gradient_hamiltonian(rho1)
             res  = np.empty((self.N, 3, 3))
             for n in range(0, self.N):               
-                g = linalg.expm(-self.h/2*s[n, :, :])
+                #g = linalg.expm(-self.h/2*s[n, :, :])
+                g = cayley(-self.h/4*s[n, :, :]).squeeze()
+                
+
                 res[n, :, :] = rho1[n, :, :] - Ad(g, rho0[n, :, :])
             return res
 
 
         #d = Diagnostics()
 
-        rho1 = newton_krylov(optimization_function, rho0, f_tol=1e-14, callback=callback)
+        rho1 = newton_krylov(optimization_function, rho0, f_tol=1e-14)#, callback=callback)
         self.diagnostics_logger.store()
 
 
