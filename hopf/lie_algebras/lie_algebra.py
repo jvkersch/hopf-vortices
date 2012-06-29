@@ -4,6 +4,8 @@ def cayley(A):
     r"""
     Apply Cayley map to elements of a matrix Lie algebra. 
 
+    NOTE: My Cayley map agrees with exp(2M) -- note the factor 2!!!
+
     Parameters
     ----------
 
