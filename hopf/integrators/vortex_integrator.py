@@ -19,10 +19,6 @@ from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from .diagnostics import BroydenDiagnostics
 
 
-N = 0
-
-
-
 class VortexIntegrator:
 
     def __init__(self, gamma, sigma=0.0, h=1e-1, 
@@ -59,10 +55,6 @@ class VortexIntegrator:
     def iteration_direct(self, b, psi0, x0):
         """Return update for `b` via direct fixed-point equation."""
 
-        global N
-
-        N += 1
-
         a = self.half_time*b
         U = cayley_klein(a)
         psi1 = apply_2by2(U, psi0)
@@ -83,8 +75,6 @@ class VortexIntegrator:
     def iteration_adjoint(self, b, psi0, x0):
         """Return update for `b` via adjoint fixed-point equation."""
 
-        global N 
-        N += 1
     
         a = self.half_time*b
         U = cayley_klein(a)
