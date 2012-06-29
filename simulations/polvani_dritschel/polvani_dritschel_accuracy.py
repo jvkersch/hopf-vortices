@@ -17,7 +17,7 @@ s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
 
-for integrator in ['lie-poisson']:#['sphere', 'midpoint']:
+for integrator in ['sphere', 'midpoint', 'lie-poisson']:
 
     for n, h in enumerate(logspace(-3, -1, 10)):
         # Statement to time (run simulation but do not save results)
