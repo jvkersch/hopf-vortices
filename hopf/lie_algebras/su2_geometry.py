@@ -12,7 +12,6 @@ pauli[:, :, 2] = [[1, 0], [0, -1]]
 tau_basis = 1j*pauli
 
 
-
 def hatmap(a):
     """
     Applies hatmap from R3 to su(2) row-wise.
