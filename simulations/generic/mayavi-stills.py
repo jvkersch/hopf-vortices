@@ -22,10 +22,10 @@ z = r*cos(phi)
 
 # Vortex locations
 times, vortices = \
-    load_variables('data/generic_sphere_40', ['times', 'vortices'])
+    load_variables('data/random50posneg-sphere.mat', ['times', 'vortices'])
 # Gamma, sigma
 gamma, sigma = \
-    load_variables('random_initial_conditions40.mat', ['gamma', 'sigma'])
+    load_variables('random-50-posneg-strongweak.mat', ['gamma', 'sigma'])
 
 
 
@@ -61,7 +61,7 @@ def create_frame(n):
     sphere = mlab.mesh(x, y, z, scalars=s, resolution=50, opacity=0.7)
     sphere.actor.property.backface_culling = True
 
-    mlab.savefig('still%d.png' % n)
+    mlab.savefig('data/still%04d.png' % n)
 
 
 if __name__ == '__main__':
