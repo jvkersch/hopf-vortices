@@ -8,8 +8,6 @@ s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
 
 for n, h in enumerate(logspace(-3, -1, 10)):
-    break
-
     s.run_simulation(tmax=10, h=h, sim='sphere', diagnostics=True)
     s.post_process()
 
