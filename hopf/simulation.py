@@ -3,6 +3,7 @@ from .integrators.vortex_integrator import VortexIntegrator
 from .integrators.rk4_integrator import RK4VortexIntegrator
 from .integrators.lie_poisson_integrator import LiePoissonIntegrator
 from .integrators.midpoint_integrator import MidpointIntegrator
+from .integrators.vortex_integrator_mu import VortexIntegrator_mu
 from .util.matlab_io import (load_initial_conditions, save_variables, 
                              load_variables)
 from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
@@ -33,7 +34,8 @@ class Simulation:
         self.N = self.X0.shape[0]
 
 
-    def run_simulation(self, tmax=20., h=.1, numpoints=100, sim='sphere', diagnostics=False):
+    def run_simulation(self, tmax=20., h=.1, numpoints=100, 
+                       sim='sphere', diagnostics=False):
 
         if self.gamma is None or self.X0 is None:
             raise ValueError, "Initial conditions not set."
@@ -49,6 +51,8 @@ class Simulation:
             v = LiePoissonIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
         elif sim == 'midpoint':
             v = MidpointIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
+        elif sim == 'sphere-mu':
+            v = VortexIntegrator_mu(self.gamma, self.sigma, h, diagnostics=diagnostics)
         else:
             raise ValueError, "Simulator %s not available." % sim
 
