@@ -37,3 +37,10 @@ def set_figure_defaults(size='medium'):
     else:
         raise ValueError("No default settings for size '%s'." % size)
 
+def small_legend(loc, size=15):
+    """
+    Silly helper function to change the size of legend to something more in 
+    line with our figure defaults.
+
+    """
+    pylab.legend(loc=loc, prop={'size':size})
