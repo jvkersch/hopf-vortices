@@ -8,10 +8,16 @@ This package contains cython code implementing a geometric variational integrato
 > [arXiv preprint](http://arxiv.org/abs/1211.4560)
 
 
-Module dependencies
--------------------
+How to run this thing
+---------------------
 
-Set PYTHONPATH to point to the hopf directory:
+First, compile the included Cython files by running 
 
-    export PYTHONPATH="$PYTHONPATH:`pwd`"
+    cd hopf && make
+
+This has to be done only once.
+
+In order to use this package, your PYTHONPATH has to point to the `hopf` directory. From within the root directory (`hopf_vortices`) of this package, run
+
+    source set_python_path.sh
 
