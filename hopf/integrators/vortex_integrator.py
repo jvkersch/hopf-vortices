@@ -1,40 +1,29 @@
 import sys
 import numpy as np
 import scipy.optimize as so
-#from math import ceil
 
 from generic_integrator import GenericIntegrator
 from ..vortices.continuous_vortex_system import vortex_rhs
 from ..lie_algebras.lie_algebra import cayley
-
-# TODO Method docstrings are horrible
-# TODO Can we bring some clarity into the morass of different optimization methods?
-
 from ..util.vectors import row_product
-#from ..util.array_solver import FSolveArray
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
-
-#from .diagnostics import BroydenDiagnostics
 
 
 class VortexIntegrator:
 
     def __init__(self, gamma, sigma=0.0, h=1e-1, 
-                 verbose=False, diagnostics=False):
+                 verbose=False, callback=None):
+        """
+        callback -- function to call after each iteration of the integrator
+        for postprocessing.
+
+        """
 
         self.gamma = np.array(gamma)
         self.sigma = sigma
         self.N = self.gamma.size
-
-        # Set up nonlinear solvers
-        #size = (self.N, 3)
-        #self.solver_direct  = FSolveArray(self.residue_direct, size=size)
-        #self.solver_adjoint = FSolveArray(self.residue_adjoint, size=size)
-
-        # Diagnostics
-        #self.res = np.zeros(self.N, dtype=np.double)
 
         # Initial choice for update element
         self.b = np.zeros((self.N, 3), dtype=np.double)
@@ -47,9 +36,7 @@ class VortexIntegrator:
         self.h = 2*h
         self.verbose = verbose
 
-        # Keep track of nonlinear convergence
-        #self.diagnostics = diagnostics
-        #self.diagnostics_logger = BroydenDiagnostics()
+        self.callback = callback
 
 
     def iteration_direct(self, b, psi0, x0):
@@ -74,7 +61,6 @@ class VortexIntegrator:
 
     def iteration_adjoint(self, b, psi0, x0):
         """Return update for `b` via adjoint fixed-point equation."""
-
     
         a = self.half_time*b
         U = cayley_klein(a)
@@ -121,54 +107,29 @@ class VortexIntegrator:
         return vortices, times
 
 
-    def do_one_step_fixedpoint(self, t, psi0, x0):
+    def do_one_step(self, t, psi0, x0):
 
-        f = lambda y: self.iteration_direct(y, psi0, x0)
-        self.b = so.fixed_point(f, self.b, xtol=1e-12)
-        U = cayley_klein(self.half_time*self.b)
-        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)        
-
-        f = lambda y: self.iteration_adjoint(y, psi0, x0)
-        self.b = so.fixed_point(f, self.b, xtol=1e-12)
-        U = cayley_klein(self.half_time*self.b)
-        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
-
-        return psi0, x0
-
-
-    def do_one_step_newton_krylov(self, t, psi0, x0):
-
-        # TODO record residuals for later inspection
-
-        callback = None
-        #if self.diagnostics:
-        #    callback = self.diagnostics_logger
-
-        #print >> sys.stderr, "direct"
+        # Apply direct method
         f = lambda y: self.residue_direct(y, psi0, x0)
-        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback)
-        #res = f(self.b); print np.max(np.max(np.abs(res)))
-        U = cayley_klein(self.half_time*self.b)
-        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
+        b0 = so.newton_krylov(f, self.b, f_tol=1e-14)
+        U0 = cayley_klein(self.half_time*b0)
+        psi1 = apply_2by2(U0, psi0); x1 = hopf(psi1)
 
-        #self.diagnostics_logger.store()
-        #print "Iterations: %d." % c.niter
-        #c.reset()
+        # Apply adjoint method
+        f = lambda y: self.residue_adjoint(y, psi1, x1)
+        b1 = so.newton_krylov(f, b0, f_tol=1e-14)
+        U1 = cayley_klein(self.half_time*b1)
+        psi2 = apply_2by2(U1, psi1); x2 = hopf(psi2)
 
-        #print >> sys.stderr, "adjoint"
-        f = lambda y: self.residue_adjoint(y, psi0, x0)
-        self.b = so.newton_krylov(f, self.b, f_tol=1e-14, callback=callback)
-        #res = f(self.b); print np.max(np.max(np.abs(res)))
-        U = cayley_klein(self.half_time*self.b)
-        psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
+        # Save b2 for next iteration
+        self.b = b2
 
-        #print "Iterations: %d." % c.niter
-        #c.reset()
-        #self.diagnostics_logger.store()
+        # Run callbacks
+        if self.callback is not None:
+            self.callback(x0, psi0, b0, x1, psi1, b1, x2, psi2)
 
-        return psi0, x0
+        return psi2, x2
 
-    do_one_step = do_one_step_newton_krylov
 
 
 
