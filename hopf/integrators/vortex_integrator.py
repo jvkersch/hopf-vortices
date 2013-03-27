@@ -11,12 +11,12 @@ from ..lie_algebras.lie_algebra import cayley
 # TODO Can we bring some clarity into the morass of different optimization methods?
 
 from ..util.vectors import row_product
-from ..util.array_solver import FSolveArray
+#from ..util.array_solver import FSolveArray
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 
-from .diagnostics import BroydenDiagnostics
+#from .diagnostics import BroydenDiagnostics
 
 
 class VortexIntegrator:
@@ -48,8 +48,8 @@ class VortexIntegrator:
         self.verbose = verbose
 
         # Keep track of nonlinear convergence
-        self.diagnostics = diagnostics
-        self.diagnostics_logger = BroydenDiagnostics()
+        #self.diagnostics = diagnostics
+        #self.diagnostics_logger = BroydenDiagnostics()
 
 
     def iteration_direct(self, b, psi0, x0):
@@ -136,13 +136,13 @@ class VortexIntegrator:
         return psi0, x0
 
 
-    def do_one_step_broyden(self, t, psi0, x0):
+    def do_one_step_newton_krylov(self, t, psi0, x0):
 
         # TODO record residuals for later inspection
 
         callback = None
-        if self.diagnostics:
-            callback = self.diagnostics_logger
+        #if self.diagnostics:
+        #    callback = self.diagnostics_logger
 
         #print >> sys.stderr, "direct"
         f = lambda y: self.residue_direct(y, psi0, x0)
@@ -151,7 +151,7 @@ class VortexIntegrator:
         U = cayley_klein(self.half_time*self.b)
         psi0 = apply_2by2(U, psi0); x0 = hopf(psi0)
 
-        self.diagnostics_logger.store()
+        #self.diagnostics_logger.store()
         #print "Iterations: %d." % c.niter
         #c.reset()
 
@@ -164,11 +164,11 @@ class VortexIntegrator:
 
         #print "Iterations: %d." % c.niter
         #c.reset()
-        self.diagnostics_logger.store()
+        #self.diagnostics_logger.store()
 
         return psi0, x0
 
-    do_one_step = do_one_step_broyden
+    do_one_step = do_one_step_newton_krylov
 
 
 
