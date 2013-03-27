@@ -108,6 +108,10 @@ class VortexIntegrator:
 
 
     def do_one_step(self, t, psi0, x0):
+        """
+        Take one integration step.
+        
+        """
 
         # Apply direct method
         f = lambda y: self.residue_direct(y, psi0, x0)
@@ -121,8 +125,8 @@ class VortexIntegrator:
         U1 = cayley_klein(self.half_time*b1)
         psi2 = apply_2by2(U1, psi1); x2 = hopf(psi2)
 
-        # Save b2 for next iteration
-        self.b = b2
+        # Save b1 for next iteration
+        self.b = b1
 
         # Run callbacks
         if self.callback is not None:
