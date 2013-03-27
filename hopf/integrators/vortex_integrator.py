@@ -10,16 +10,12 @@ from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf,
                                          inverse_hopf)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 
+import ipdb
 
 class VortexIntegrator:
 
     def __init__(self, gamma, sigma=0.0, h=1e-1, 
-                 verbose=False, callback=None):
-        """
-        callback -- function to call after each iteration of the integrator
-        for postprocessing.
-
-        """
+                 verbose=False, compute_momentum=False):
 
         self.gamma = np.array(gamma)
         self.sigma = sigma
@@ -36,7 +32,23 @@ class VortexIntegrator:
         self.h = 2*h
         self.verbose = verbose
 
-        self.callback = callback
+        self.compute_momentum = compute_momentum
+
+
+    def compute_momentum_map(self, x0, a0, x1): 
+
+        gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
+        norm_a0 = np.sum(a0**2, axis=1) 
+
+        term1 = row_product(2./(1 + norm_a0), np.cross(a0, x0, axis=1) + 
+                            row_product(norm_a0, x0)) - x0
+        term2 = row_product(1./(1 + norm_a0), np.cross(x0, gradH, axis=1) 
+                            #- row_product(np.sum(a0*x0, axis=1), gradH)
+                            - np.cross(np.cross(a0, x0, axis=1), gradH, axis=1))
+
+        return np.sum(row_product(self.gamma, term1 - 
+                                  self.half_time/2*term2), axis=0)
+
 
 
     def iteration_direct(self, b, psi0, x0):
@@ -84,8 +96,9 @@ class VortexIntegrator:
         num_inner = int(round(tmax/(self.h*numpoints)))
         t = 0
 
-        vortices = np.zeros((numpoints, ) + X0.shape)
-        times = np.zeros(numpoints)
+        momentum = np.empty((numpoints, 3))
+        vortices = np.empty((numpoints, ) + X0.shape)
+        times = np.empty(numpoints)
 
         psi0 = inverse_hopf(X0)
 
@@ -95,16 +108,23 @@ class VortexIntegrator:
         for k in xrange(0, numpoints):
             print >> sys.stderr, '.',
             for _ in xrange(0, num_inner):
-                psi0, X0 = self.do_one_step(t, psi0, X0)
+                psi0, X0, m = self.do_one_step(t, psi0, X0)
                 t += 2*self.half_time
 
             # Save output
             vortices[k, :, :] = X0
             times[k] = t
 
+            if self.compute_momentum:
+                momentum[k, :] = m
+
 
         print >> sys.stderr, '\n'
-        return vortices, times
+
+        if self.compute_momentum:
+            return vortices, times, momentum
+        else:
+            return vortices, times
 
 
     def do_one_step(self, t, psi0, x0):
@@ -128,11 +148,15 @@ class VortexIntegrator:
         # Save b1 for next iteration
         self.b = b1
 
-        # Run callbacks
-        if self.callback is not None:
-            self.callback(x0, psi0, b0, x1, psi1, b1, x2, psi2)
+        #if t > 120:
+            #ipdb.set_trace()
 
-        return psi2, x2
+        # Compute momentum map, if needed
+        m = None
+        if self.compute_momentum:
+            m =  self.compute_momentum_map(x0, self.half_time*b0, x1)
+            m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
+        return psi2, x2, m
 
 
 

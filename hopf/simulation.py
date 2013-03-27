@@ -44,7 +44,9 @@ class Simulation:
 
         self.sim_type = sim
         if sim == 'sphere':
-            v = VortexIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
+            v = VortexIntegrator(self.gamma, self.sigma, h)
+        elif sim == 'sphere-momentum':
+            v = VortexIntegrator(self.gamma, self.sigma, h, compute_momentum=True)
         elif sim == 'rk4':
             v = RK4VortexIntegrator(self.gamma, self.sigma, h)
         elif sim == 'lie-poisson':
@@ -55,9 +57,14 @@ class Simulation:
             v = VortexIntegrator_mu(self.gamma, self.sigma, h, diagnostics=diagnostics)
         else:
             raise ValueError, "Simulator %s not available." % sim
+            
+        output = v.integrate(self.X0, tmax, numpoints, full_output=True)
 
-        [self.vortices, self.times] = \
-            v.integrate(self.X0, tmax, numpoints, full_output=True)
+        self.vortices = output[0]
+        self.times = output[1]
+
+        if sim == 'sphere-momentum':
+            self.momentum = output[2]
 
         self.diagnostics=diagnostics
         if diagnostics:
