@@ -7,7 +7,6 @@ This package contains cython code implementing a geometric variational integrato
 > _A novel formulation of point vortex dynamics on the sphere: geometrical and numerical aspects_ (2012). 
 > [arXiv preprint](http://arxiv.org/abs/1211.4560)
 
-
 How to run this thing
 ---------------------
 
