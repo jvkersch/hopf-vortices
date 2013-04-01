@@ -9,7 +9,7 @@ from ..util.vectors import row_product
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf, pauli)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
-from ..vortices.vortices_S3 import scaled_gradient_hamiltonian_S3
+from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3
 
 import ipdb
 
@@ -56,15 +56,20 @@ class VortexIntegrator:
         gradH = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
                                                self.sigma).conj()
 
-        J = np.empty(3)
+	N = len(self.gamma)
+        J = np.zeros(3)
 
         for alpha in xrange(0, 3):
-            P = 1j*apply_2by2(pauli[:, :, alpha], phi0)
+		for k in xrange(0, N):
+		
+			# ipdb.set_trace()
+	
+            		P = 1j*np.dot(pauli[:, :, alpha], phi0[k, :])
 
-            term1 = 1j*row_product(self.gamma, phi1.conj())
-            term2 = self.half_time/2*gradH
+            		term1 = 1j*self.gamma[k]*phi1[k,:].conj()
+            		term2 = self.half_time/2*gradH[k, :]
 
-            J[alpha] = np.dot(term1 + term2, P, axis=0).real
+		        J[alpha] += np.dot(term1 + term2, P).real
 
         return J
 
@@ -175,7 +180,7 @@ class VortexIntegrator:
             #m =  self.compute_momentum_map(x0, self.half_time*b0, x1)
             #m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
 
-            m = self.compute_momentum_map_S3(phi0, phi1)
+            m = self.compute_momentum_map_S3(psi0, psi1)
             
         return psi2, x2, m
 
