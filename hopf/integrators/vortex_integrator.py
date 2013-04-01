@@ -7,8 +7,9 @@ from ..vortices.continuous_vortex_system import vortex_rhs
 from ..lie_algebras.lie_algebra import cayley
 from ..util.vectors import row_product
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
-                                         inverse_hopf)
+                                         inverse_hopf, pauli)
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
+from ..vortices.vortices_S3 import scaled_gradient_hamiltonian_S3
 
 import ipdb
 
@@ -49,6 +50,23 @@ class VortexIntegrator:
         return np.sum(row_product(self.gamma, term1 - 
                                   self.half_time/2*term2), axis=0)
 
+
+    def compute_momentum_map_S3(self, phi0, phi1):
+
+        gradH = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
+                                               self.sigma).conj()
+
+        J = np.empty(3)
+
+        for alpha in xrange(0, 3):
+            P = 1j*apply_2by2(pauli[:, :, alpha], phi0)
+
+            term1 = 1j*row_product(self.gamma, phi1.conj())
+            term2 = self.half_time/2*gradH
+
+            J[alpha] = np.dot(term1 + term2, P, axis=0).real
+
+        return J
 
 
     def iteration_direct(self, b, psi0, x0):
@@ -154,8 +172,11 @@ class VortexIntegrator:
         # Compute momentum map, if needed
         m = None
         if self.compute_momentum:
-            m =  self.compute_momentum_map(x0, self.half_time*b0, x1)
-            m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
+            #m =  self.compute_momentum_map(x0, self.half_time*b0, x1)
+            #m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
+
+            m = self.compute_momentum_map_S3(phi0, phi1)
+            
         return psi2, x2, m
 
 
