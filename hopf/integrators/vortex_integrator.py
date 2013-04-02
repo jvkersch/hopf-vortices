@@ -181,6 +181,12 @@ class VortexIntegrator:
             #m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
 
             m = self.compute_momentum_map_S3(psi0, psi1)
+
+            print "momentum difference ", np.max(np.abs( \
+                        self.compute_momentum_map_S3(psi0, psi1) - 
+                        self.compute_momentum_map(x0, self.half_time*b0, x1)))
+
+            print "m3 3-component ", m[2]
             
         return psi2, x2, m
 
