@@ -104,6 +104,42 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
 def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma, 
                        np.ndarray[DTYPE_t, ndim=2] X,
                        DTYPE_t sigma):
+    """
+    Value of the energy for a vortex configuration, computed using 
+    inner products.
+
+    INPUT:
+
+      - ``gamma`` - Vector of vortex strengths.
+
+      - ``X`` - Array of vortex locations in 3D.
+
+      - ``sigma`` - Scalar value for regularization parameter.
+
+    OUTPUT:
+
+    Value of the energy as a scalar.
+
+    """
+
+    cdef int N = X.shape[0]
+    cdef int ndim = X.shape[1]
+    cdef int i, j
+    cdef DTYPE_t E = 0
+
+    for i from 0 <= i < N:
+        for j from i+1 <= j < N:
+            factor = 2*sigma**2 + 2*(1 - np.dot(X[i, :], X[j, :]))
+            E -= gamma[i]*gamma[j]/(4*PI)*log(factor)
+             
+    return E
+
+
+@cython.boundscheck(False) 
+@cython.wraparound(False)
+def vortex_hamiltonian_differences(np.ndarray[DTYPE_t, ndim=1] gamma, 
+                                   np.ndarray[DTYPE_t, ndim=2] X,
+                                   DTYPE_t sigma):
     """Value of the energy for a vortex configuration.
 
     INPUT:

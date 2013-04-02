@@ -22,9 +22,15 @@ def vortex_hamiltonian_S3(gamma, phi, sigma):
     N = phi.shape[0]
     for k in xrange(0, N):
         for l in xrange(k+1, N):
-            p = hermitian_product(phi[k, :], phi[l, :])
-            H -= ( gamma[k]*gamma[l]/(4*np.pi) * 
-                   np.log(2*sigma**2 + 4*(1 - p*p.conj())) ).real
+
+            p_lk = hermitian_product(phi[l, :], phi[k, :])
+            p_ll = hermitian_product(phi[l, :], phi[l, :])
+            p_kk = hermitian_product(phi[k, :], phi[k, :])
+            p_kl = p_lk.conj()
+
+            factor = (2*sigma**2 + 2*(1 + p_ll*p_kk - 2*p_lk*p_kl)).real
+
+            H -= gamma[k]*gamma[l]/(4*np.pi) * np.log(factor)
 
     return H
 
@@ -43,9 +49,15 @@ def scaled_gradient_hamiltonian_S3(gamma, phi, sigma):
     for k in xrange(0, N):
         for l in xrange(0, N):
             if l == k: continue
-            p = hermitian_product(phi[l, :], phi[k, :])
-            DH[k, :] += (gamma[l]/np.pi*p*phi[l, :] / 
-                         (2*sigma**2 + 4*(1 - p*p.conj())))
+            p_lk = hermitian_product(phi[l, :], phi[k, :])
+            p_ll = hermitian_product(phi[l, :], phi[l, :])
+            p_kk = hermitian_product(phi[k, :], phi[k, :])
+            p_kl = p_lk.conj()
+
+            denominator = (2*sigma**2 + 2*(1 + p_ll*p_kk - 2*p_lk*p_kl)).real
+
+            DH[k, :] -= ( gamma[l]/(4*np.pi*denominator) *
+                          (2*p_ll*phi[k, :] - 4*p_lk*phi[l, :]) )
 
     return DH
 
@@ -80,7 +92,7 @@ def scaled_gradient_hamiltonian_S3_finite_differences(gamma, phi, sigma):
                     vortex_hamiltonian_S3(gamma, phi - eps*diff, sigma) )/
                    (2*eps) )
 
-            DH[k, n] = (re + 1.j*im)/2 # Complex derivative
+            DH[k, n] = 1./gamma[k]*(re + 1.j*im)/2 # Complex derivative
 
     return DH
 
