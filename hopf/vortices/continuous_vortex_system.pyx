@@ -29,6 +29,35 @@ cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X, 
     DTYPE_t sigma):
+    """
+    Scaled gradient of the point vortex Hamiltonian, where the Hamiltonian
+    has been written in terms of inner products between the vortex 
+    locations.
+
+    """
+
+    cdef int N = X.shape[0]
+    cdef int ndim = X.shape[1]
+    cdef np.ndarray[DTYPE_t, ndim=2] res = np.zeros([N, ndim], dtype=DTYPE)
+    cdef int i, j
+    cdef double d
+
+    for i from 0 <= i < N:
+        for j from 0 <= j < N:
+            if i == j: continue
+            d = sigma**2 + 1 - np.dot(X[i, :], X[j, :])
+            res[i, :] += 1/(4.*PI)*gamma[j]*X[j, :]/d
+
+    return res
+
+
+@cython.boundscheck(False) 
+@cython.wraparound(False)
+
+cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian_differences(
+    np.ndarray[DTYPE_t, ndim=1] gamma, 
+    np.ndarray[DTYPE_t, ndim=2] X, 
+    DTYPE_t sigma):
 
     # NOTE/TODO: This is gradient of the hamiltonian UP TO A FACTOR 
     # of gamma, so the name of this function is not that accurate.
