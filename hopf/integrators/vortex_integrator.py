@@ -11,7 +11,15 @@ from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf,
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3
 
-import ipdb
+
+"""
+TODO: 
+
+* get rid of extraneous imports 
+
+* get rid of separate residue/iteration methods 
+
+"""
 
 class VortexIntegrator:
 
@@ -35,16 +43,84 @@ class VortexIntegrator:
 
         self.compute_momentum = compute_momentum
 
+    def check_direct_equation_S3(self, phi0, phi1):
+        """
+        Compute the residual of the direct equation.
+
+        """
+
+        gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
+                                                 self.sigma)
+
+        N = len(self.gamma)
+        res = np.empty((N, 3))
+
+        for k in xrange(0, N):
+            f = -1.j*(phi1[k, :] - phi0[k, :]) + \
+                self.half_time/2*(gradH01[k, :])
+            for alpha in xrange(0, 3):
+                projector = np.dot(phi0[k, :].conj(), 1.j*pauli[:, :, alpha])
+                res[k, alpha] = np.dot(projector, f).real
+
+        return np.max(np.max(np.abs(res)))
+
+
+    def check_adjoint_equation_S3(self, phi0, phi1):
+        """
+        Compute the residual of the adjoint equation.
+
+        """
+        gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
+                                                 self.sigma)
+
+        N = len(self.gamma)
+        res = np.empty((N, 3))
+
+        for k in xrange(0, N):
+            f = -1.j*(phi1[k, :] - phi0[k, :]) + \
+                self.half_time/2*(gradH01[k, :])
+            for alpha in xrange(0, 3):
+                projector = np.dot(phi1[k, :].conj(), 1.j*pauli[:, :, alpha])
+                res[k, alpha] = np.dot(projector, f).real
+
+        return np.max(np.max(np.abs(res)))
+
+
+
+    def check_equations_S3(self, phi0, phi1, phi2):
+
+        gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
+                                                 self.sigma)
+        
+        gradH12 = scaled_gradient_hamiltonian_S3(self.gamma, (phi1+phi2)/2,
+                                                 self.sigma)
+
+        N = len(self.gamma)
+        res = np.empty((N, 3))
+
+        for k in xrange(0, N):
+            f = -1.j*(phi2[k, :] - phi0[k, :]) + \
+                self.half_time/2*(gradH01[k, :] + gradH12[k, :])
+            for alpha in xrange(0, 3):
+                projector = np.dot(phi1[k, :].conj(), 1.j*pauli[:, :, alpha])
+                res[k, alpha] = np.dot(projector, f).real
+
+        return np.max(np.max(np.abs(res)))
+
 
     def compute_momentum_map(self, x0, a0, x1): 
+        """
+        TODO: this method is still buggy. At the very least, Hamiltonian
+        needs to be evaluated at pi( (phi0 + phi1)/2 ) rather than 
+        (x0 + x1)/2 as is now the case.
 
+        """
         gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
         norm_a0 = np.sum(a0**2, axis=1) 
 
         term1 = row_product(2./(1 + norm_a0), np.cross(a0, x0, axis=1) + 
                             row_product(norm_a0, x0)) - x0
         term2 = row_product(1./(1 + norm_a0), np.cross(x0, gradH, axis=1) 
-                            #- row_product(np.sum(a0*x0, axis=1), gradH)
                             - np.cross(np.cross(a0, x0, axis=1), gradH, axis=1))
 
         return np.sum(row_product(self.gamma, term1 - 
@@ -52,7 +128,11 @@ class VortexIntegrator:
 
 
     def compute_momentum_map_S3(self, phi0, phi1):
+        """
+        Compute the vortex momentum map using geometric quantities defined
+        directly on S3.
 
+        """
         gradH = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
                                                self.sigma).conj()
 
@@ -61,15 +141,12 @@ class VortexIntegrator:
 
         for alpha in xrange(0, 3):
 		for k in xrange(0, N):
-		
-			# ipdb.set_trace()
-	
             		P = 1j*np.dot(pauli[:, :, alpha], phi0[k, :])
 
-            		term1 = 1j*self.gamma[k]*phi1[k,:].conj()
+            		term1 = 1j*phi1[k,:].conj()
             		term2 = self.half_time/2*gradH[k, :]
 
-		        J[alpha] += np.dot(term1 + term2, P).real
+		        J[alpha] += self.gamma[k]*np.dot(term1 + term2, P).real
 
         return J
 
@@ -82,7 +159,9 @@ class VortexIntegrator:
         psi1 = apply_2by2(U, psi0)
         x1 = hopf(psi1)
 
-        gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
+        x01 = hopf((psi0+psi1)/2)
+
+        gradH = scaled_gradient_hamiltonian(self.gamma, x01, self.sigma)
         dot   = np.sum(x0*gradH, axis=1)
 
         return 1./4*np.cross(np.cross(gradH, x0, axis=1) - row_product(dot, a), 
@@ -101,8 +180,10 @@ class VortexIntegrator:
         U = cayley_klein(a)
         psi1 = apply_2by2(U, psi0)
         x1 = hopf(psi1)
+
+        x01 = hopf((psi0+psi1)/2)
     
-        gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
+        gradH = scaled_gradient_hamiltonian(self.gamma, x01, self.sigma)
         dot   = np.sum(x1*gradH, axis=1)
 
         return 1./4*np.cross(np.cross(gradH, x1, axis=1) + row_product(dot, a), 
@@ -124,6 +205,8 @@ class VortexIntegrator:
         times = np.empty(numpoints)
 
         psi0 = inverse_hopf(X0)
+        X0 = hopf(psi0)
+
 
         if self.verbose:
             print >> sys.stderr, "Entering integration loop"
@@ -156,39 +239,28 @@ class VortexIntegrator:
         
         """
 
-        # Apply direct method
-        f = lambda y: self.residue_direct(y, psi0, x0)
+        # Apply adjoint method
+        f = lambda y: self.residue_adjoint(y, psi0, x0)
         b0 = so.newton_krylov(f, self.b, f_tol=1e-14)
         U0 = cayley_klein(self.half_time*b0)
         psi1 = apply_2by2(U0, psi0); x1 = hopf(psi1)
 
-        # Apply adjoint method
-        f = lambda y: self.residue_adjoint(y, psi1, x1)
+        # Apply direct method
+        f = lambda y: self.residue_direct(y, psi1, x1)
         b1 = so.newton_krylov(f, b0, f_tol=1e-14)
         U1 = cayley_klein(self.half_time*b1)
         psi2 = apply_2by2(U1, psi1); x2 = hopf(psi2)
 
-        # Save b1 for next iteration
         self.b = b1
 
-        #if t > 120:
-            #ipdb.set_trace()
 
         # Compute momentum map, if needed
         m = None
         if self.compute_momentum:
-            #m =  self.compute_momentum_map(x0, self.half_time*b0, x1)
-            #m -= self.compute_momentum_map(x1, self.half_time*b1, x2)
-
             m = self.compute_momentum_map_S3(psi0, psi1)
 
-            print "momentum difference ", np.max(np.abs( \
-                        self.compute_momentum_map_S3(psi0, psi1) - 
-                        self.compute_momentum_map(x0, self.half_time*b0, x1)))
-
-            print "m3 3-component ", m[2]
-            
         return psi2, x2, m
+
 
 
 
