@@ -4,6 +4,7 @@ from .integrators.rk4_integrator import RK4VortexIntegrator
 from .integrators.lie_poisson_integrator import LiePoissonIntegrator
 from .integrators.midpoint_integrator import MidpointIntegrator
 from .integrators.vortex_integrator_mu import VortexIntegrator_mu
+from .integrators.vortex_integrator_twostep import VortexIntegratorTwostep
 from .util.matlab_io import (load_initial_conditions, save_variables, 
                              load_variables)
 from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
@@ -55,6 +56,10 @@ class Simulation:
             v = MidpointIntegrator(self.gamma, self.sigma, h, diagnostics=diagnostics)
         elif sim == 'sphere-mu':
             v = VortexIntegrator_mu(self.gamma, self.sigma, h, diagnostics=diagnostics)
+        elif sim == 'sphere-twostep':
+            v = VortexIntegratorTwostep(self.gamma, self.sigma, h)
+        elif sim == 'sphere-twostep-momentum':
+            v = VortexIntegratorTwostep(self.gamma, self.sigma, h, compute_momentum=True)
         else:
             raise ValueError, "Simulator %s not available." % sim
             

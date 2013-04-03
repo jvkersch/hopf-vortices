@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..lie_algebras.su2_geometry import pauli
+#from ..lie_algebras.su2_geometry import pauli
 #from ..vortices.continuous_vortex_system import vortex_hamiltonian
 
 
@@ -98,20 +98,20 @@ def scaled_gradient_hamiltonian_S3_finite_differences(gamma, phi, sigma):
 
 
 
-def projection(phi, d_phi):
-    """
-    Compute the real part of i d_phi sigma phi, where sigma are the Pauli
-    matrices.
+# def projection(phi, d_phi):
+#     """
+#     Compute the real part of i d_phi sigma phi, where sigma are the Pauli
+#     matrices.
 
-    """
+#     """
 
-    N = phi.shape[0]
-    vec = np.zeros((N, 3))
+#     N = phi.shape[0]
+#     vec = np.zeros((N, 3))
 
-    for i in xrange(0, 3):
-        for k in xrange(0, N):
-            entry = np.dot(d_phi[k, :], np.dot(pauli[:, :, i], phi[k, :]))
-            vec[k, i] = (1j*entry).real
+#     for i in xrange(0, 3):
+#         for k in xrange(0, N):
+#             entry = np.dot(d_phi[k, :], np.dot(pauli[:, :, i], phi[k, :]))
+#             vec[k, i] = (1j*entry).real
 
-    return vec
+#     return vec
         
