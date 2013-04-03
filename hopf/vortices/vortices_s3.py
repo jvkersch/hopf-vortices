@@ -62,7 +62,7 @@ def scaled_gradient_hamiltonian_S3(gamma, phi, sigma):
     return DH
 
 
-def scaled_gradient_hamiltonian_S3_finite_differences(gamma, phi, sigma):
+def scaled_gradient_hamiltonian_S3_fd(gamma, phi, sigma):
     """
     Compute the gradient of the Hamiltonian on S3 with finite differences.
 
