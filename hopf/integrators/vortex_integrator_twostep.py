@@ -32,7 +32,7 @@ class VortexIntegratorTwostep:
 
         self.compute_momentum = compute_momentum
 
-    def residual_direct(self, phi0, phi1):#, res):
+    def residual_direct(self, phi0, phi1):
         """
         Compute the residual of the direct equation.
 
@@ -53,7 +53,7 @@ class VortexIntegratorTwostep:
 
         return res
 
-    def residual_adjoint(self, phi0, phi1):#, res):
+    def residual_adjoint(self, phi0, phi1):
         """
         Compute the residual of the adjoint equation.
 
@@ -222,25 +222,12 @@ class VortexIntegratorTwostep:
         U1 = cayley_klein(self.half_time*self.b)
         psi2 = apply_2by2(U1, psi1); x2 = hopf(psi2)
 
-        
-        #def objective_function(b):
-        #    U = cayley_klein(self.half_time*b)
-        #    psi2 = apply_2by2(U, psi1)
-        #    return self.residual_direct(psi1, psi2) + slack
-
-        #b = so.newton_krylov(objective_function, self.b, f_tol=1e-14)
-        #U = cayley_klein(self.half_time*b)
-        #psi2 = apply_2by2(U, psi1); x2 = hopf(psi2)
-
-        #self.b = b
-
-        print self.check_full_equations(psi0, psi1, psi2)
+        # print self.check_full_equations(psi0, psi1, psi2)
 
         # Compute momentum map, if needed
         m = None
         if self.compute_momentum:
-            m = self.compute_momentum_map_S3(psi1, psi2)
-            print "momentum", m
+            m = self.compute_momentum_map(psi1, psi2)
 
         return psi2, x2, m
 
