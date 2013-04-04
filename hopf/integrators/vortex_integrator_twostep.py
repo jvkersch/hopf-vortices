@@ -3,23 +3,12 @@ import numpy as np
 import scipy.optimize as so
 
 from generic_integrator import GenericIntegrator
-from ..vortices.continuous_vortex_system import vortex_rhs
 from ..lie_algebras.lie_algebra import cayley
 from ..util.vectors import row_product
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf, pauli)
-from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
 from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3
 
-
-"""
-TODO: 
-
-* get rid of extraneous imports 
-
-* get rid of separate residue/iteration methods 
-
-"""
 
 class VortexIntegratorTwostep:
 
@@ -43,7 +32,7 @@ class VortexIntegratorTwostep:
 
         self.compute_momentum = compute_momentum
 
-    def residual_direct_equation_S3(self, phi0, phi1):
+    def residual_direct(self, phi0, phi1):#, res):
         """
         Compute the residual of the direct equation.
 
@@ -54,7 +43,7 @@ class VortexIntegratorTwostep:
 
         N = len(self.gamma)
         res = np.empty((N, 3))
-
+        
         for k in xrange(0, N):
             f = -1.j*(phi1[k, :] - phi0[k, :]) + \
                 self.half_time/2*(gradH01[k, :])
@@ -64,8 +53,7 @@ class VortexIntegratorTwostep:
 
         return res
 
-
-    def residual_adjoint_equation_S3(self, phi0, phi1):
+    def residual_adjoint(self, phi0, phi1):#, res):
         """
         Compute the residual of the adjoint equation.
 
@@ -86,8 +74,52 @@ class VortexIntegratorTwostep:
         return res
 
 
+    def residual_adjoint_su2(self, psi0, b0):
+        """
+        Computes the residual of the adjoint equation, expressed as a function
+        of the initial point `psi0` and the update element `b0`.
 
-    def check_equations_S3(self, phi0, phi1, phi2):
+        """
+
+        U0 = cayley_klein(self.half_time*b0)
+        psi1 = apply_2by2(U0, psi0)
+        
+        return self.residual_adjoint(psi0, psi1)
+
+
+    def residual_direct_su2(self, psi0, b0):
+        """
+        Computes the residual of the direct equation, expressed as a function
+        of the initial point `psi0` and the update element `b0`.
+
+        """
+
+        U0 = cayley_klein(self.half_time*b0)
+        psi1 = apply_2by2(U0, psi0)
+        
+        return self.residual_direct(psi0, psi1)
+        
+
+    def bootstrap(self, psi0):
+        """
+        Given an initial point `psi0`, finds the next point `psi` by 
+        solving the adjoint equation.
+
+        """
+        f = lambda b: self.residual_adjoint_su2(psi0, b)
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14)
+        U0 = cayley_klein(self.half_time*self.b)
+        psi1 = apply_2by2(U0, psi0)
+
+        return psi1
+
+
+    def check_full_equations(self, phi0, phi1, phi2):
+        """
+        Helper method to check whether a triple of points satisfies the 
+        full two-point discrete Euler-Lagrange equations.
+
+        """
 
         gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
                                                  self.sigma)
@@ -108,26 +140,7 @@ class VortexIntegratorTwostep:
         return np.max(np.max(np.abs(res)))
 
 
-    def compute_momentum_map(self, x0, a0, x1): 
-        """
-        TODO: this method is still buggy. At the very least, Hamiltonian
-        needs to be evaluated at pi( (phi0 + phi1)/2 ) rather than 
-        (x0 + x1)/2 as is now the case.
-
-        """
-        gradH = scaled_gradient_hamiltonian(self.gamma, (x0+x1)/2., self.sigma)
-        norm_a0 = np.sum(a0**2, axis=1) 
-
-        term1 = row_product(2./(1 + norm_a0), np.cross(a0, x0, axis=1) + 
-                            row_product(norm_a0, x0)) - x0
-        term2 = row_product(1./(1 + norm_a0), np.cross(x0, gradH, axis=1) 
-                            - np.cross(np.cross(a0, x0, axis=1), gradH, axis=1))
-
-        return np.sum(row_product(self.gamma, term1 - 
-                                  self.half_time/2*term2), axis=0)
-
-
-    def compute_momentum_map_S3(self, phi0, phi1):
+    def compute_momentum_map(self, phi0, phi1):
         """
         Compute the vortex momentum map using geometric quantities defined
         directly on S3.
@@ -151,50 +164,6 @@ class VortexIntegratorTwostep:
         return J
 
 
-    def iteration_direct(self, b, psi0, x0):
-        """Return update for `b` via direct fixed-point equation."""
-
-        a = self.half_time*b
-        U = cayley_klein(a)
-        psi1 = apply_2by2(U, psi0)
-        x1 = hopf(psi1)
-
-        x01 = hopf((psi0+psi1)/2)
-
-        gradH = scaled_gradient_hamiltonian(self.gamma, x01, self.sigma)
-        dot   = np.sum(x0*gradH, axis=1)
-
-        return 1./4*np.cross(np.cross(gradH, x0, axis=1) - row_product(dot, a), 
-                             x0, axis=1)
-
-
-    def residue_direct(self, b, psi0, x0):
-        """Residue for direct iteration."""
-        return b - self.iteration_direct(b, psi0, x0)
-
-
-    def iteration_adjoint(self, b, psi0, x0):
-        """Return update for `b` via adjoint fixed-point equation."""
-    
-        a = self.half_time*b
-        U = cayley_klein(a)
-        psi1 = apply_2by2(U, psi0)
-        x1 = hopf(psi1)
-
-        x01 = hopf((psi0+psi1)/2)
-    
-        gradH = scaled_gradient_hamiltonian(self.gamma, x01, self.sigma)
-        dot   = np.sum(x1*gradH, axis=1)
-
-        return 1./4*np.cross(np.cross(gradH, x1, axis=1) + row_product(dot, a), 
-                             x1, axis=1)
-
-
-    def residue_adjoint(self, b, psi0, x0):
-        """Residue for adjoint iteration."""
-        return b - self.iteration_adjoint(b, psi0, x0)
-
-
     def integrate(self, X0, tmax=50., numpoints=100, full_output=False):
 
         num_inner = int(round(tmax/(self.h*numpoints)))
@@ -207,7 +176,7 @@ class VortexIntegratorTwostep:
         psi0 = inverse_hopf(X0)
         X0 = hopf(psi0)
 
-        psi1 = self.bootstrap(psi0, X0)
+        psi1 = self.bootstrap(psi0)
         X1 = hopf(psi1)
 
         t += self.half_time
@@ -239,14 +208,6 @@ class VortexIntegratorTwostep:
         else:
             return vortices, times
 
-    def bootstrap(self, psi0, x0):
-
-        f = lambda y: self.residue_adjoint(y, psi0, x0)
-        b0 = so.newton_krylov(f, self.b, f_tol=1e-14)
-        U0 = cayley_klein(self.half_time*b0)
-        psi1 = apply_2by2(U0, psi0); x1 = hopf(psi1)
-
-        return psi1
 
     def do_one_step(self, t, psi0, x0, psi1, x1):
         """
@@ -254,20 +215,26 @@ class VortexIntegratorTwostep:
         
         """
 
-        slack = self.residual_adjoint_equation_S3(psi0, psi1)
+        slack = self.residual_adjoint(psi0, psi1)
+
+        f = lambda b: self.residual_direct_su2(psi1, b) + slack
+        self.b = so.newton_krylov(f, self.b, f_tol=1e-14)
+        U1 = cayley_klein(self.half_time*self.b)
+        psi2 = apply_2by2(U1, psi1); x2 = hopf(psi2)
+
         
-        def objective_function(b):
-            U = cayley_klein(self.half_time*b)
-            psi2 = apply_2by2(U, psi1)
-            return self.residual_direct_equation_S3(psi1, psi2) + slack
+        #def objective_function(b):
+        #    U = cayley_klein(self.half_time*b)
+        #    psi2 = apply_2by2(U, psi1)
+        #    return self.residual_direct(psi1, psi2) + slack
 
-        b = so.newton_krylov(objective_function, self.b, f_tol=1e-14)
-        U = cayley_klein(self.half_time*b)
-        psi2 = apply_2by2(U, psi1); x2 = hopf(psi2)
+        #b = so.newton_krylov(objective_function, self.b, f_tol=1e-14)
+        #U = cayley_klein(self.half_time*b)
+        #psi2 = apply_2by2(U, psi1); x2 = hopf(psi2)
 
-        self.b = b
+        #self.b = b
 
-        print self.check_equations_S3(psi0, psi1, psi2)
+        print self.check_full_equations(psi0, psi1, psi2)
 
         # Compute momentum map, if needed
         m = None
