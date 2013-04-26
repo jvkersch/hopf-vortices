@@ -1,0 +1,9 @@
+In simulation.py, fix storing both 'momentum' and 'moments'
+
+Remove 'old' vortex simulators
+
+Streamline calling interface for different simulators
+
+Speed up by cythoning computation of residuals in vortex_integrator_twostep
+
+Get rid of horribly long method names

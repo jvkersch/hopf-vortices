@@ -75,14 +75,9 @@ class Simulation:
         self.vortices = output[0]
         self.times = output[1]
 
-        if sim == 'sphere-momentum':
+	self.momentum = None
+        if sim == 'sphere-momentum' or sim == 'sphere-twostep-momentum':
             self.momentum = output[2]
-
-        #self.diagnostics=diagnostics
-        #if diagnostics:
-        #    self.number_iterations, self.residues = \
-        #        np.array(v.diagnostics_logger.number_iterations), \
-        #        np.array(v.diagnostics_logger.residues)
 
 
     def post_process(self):
@@ -113,6 +108,9 @@ class Simulation:
         #if self.diagnostics:
         #    variables['number_iterations'] = self.number_iterations
         #    variables['residues'] = self.residues
+
+	if self.momentum is not None:
+	    variables['momentum'] = self.momentum
 
         save_variables(output_filename, variables)
                        
