@@ -3,7 +3,7 @@ from hopf.simulation import Simulation
 # Sphere integrator
 s = Simulation()
 s.load_initial_conditions('svs5_poles.mat')
-s.run_simulation(tmax=100, sim='sphere')
+s.run_simulation(tmax=100, sim='sphere-midpoint-momentum')
 s.post_process()
 s.save_results('data/svs5_poles_sphere.mat')
 

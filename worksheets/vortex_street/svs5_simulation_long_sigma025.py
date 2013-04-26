@@ -4,7 +4,8 @@ from hopf.simulation import Simulation
 s = Simulation()
 s.load_initial_conditions('svs5_poles.mat')
 s.sigma = 0.25
-s.run_simulation(h=0.25, tmax=10000, numpoints=1000, sim='sphere')
+s.run_simulation(h=0.25, tmax=10000, numpoints=1000, 
+                 sim='sphere-midpoint-momentum')
 s.post_process()
 s.save_results('data/svs5_poles_sphere_long.mat')
 
