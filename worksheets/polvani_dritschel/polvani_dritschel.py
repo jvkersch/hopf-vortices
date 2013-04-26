@@ -36,7 +36,7 @@ s.save_results('data/pd_lp_long.mat')
 # Sphere integrator
 s = Simulation()
 s.load_initial_conditions('pd_initial_conditions.mat')
-s.run_simulation(tmax=100, sim='sphere-mipoint-momentum')
+s.run_simulation(tmax=100, sim='sphere-midpoint-momentum')
 s.post_process()
 s.save_results('data/pd_sphere_short.mat')
 
