@@ -8,10 +8,6 @@ import numpy as np
 cimport numpy as np
 cimport cython 
 
-# Build with 
-# 
-# python setup.py build_ext --inplace
-
 
 DTYPE=np.double
 ctypedef np.double_t DTYPE_t
@@ -25,7 +21,7 @@ cdef extern from "math.h":
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
+cpdef np.ndarray[DTYPE_t, ndim=2] gradient_S2_slow(
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X, 
     DTYPE_t sigma):
@@ -50,19 +46,50 @@ cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian(
 
     return res
 
-
+@cython.cdivision(True)
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-
-cpdef np.ndarray[DTYPE_t, ndim=2] scaled_gradient_hamiltonian_differences(
+cpdef np.ndarray[DTYPE_t, ndim=2] gradient_S2(
+    np.ndarray[DTYPE_t, ndim=2] gradient,
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X, 
     DTYPE_t sigma):
+    """
+    Scaled gradient of the point vortex Hamiltonian, where the Hamiltonian
+    has been written in terms of inner products between the vortex 
+    locations.
 
-    # NOTE/TODO: This is gradient of the hamiltonian UP TO A FACTOR 
-    # of gamma, so the name of this function is not that accurate.
-    # Better would be to make this a wrapper around J * vortex_rhs
+    """
 
+    cdef int N = X.shape[0]
+    cdef int ndim = X.shape[1]
+    cdef int i, j, alpha
+    cdef double d
+
+    for i from 0 <= i < N:
+        for alpha from 0 <= alpha < 3:
+            gradient[i, alpha] = 0
+        for j from 0 <= j < N:
+            if i == j: continue
+            d = sigma**2 + 1
+            for alpha from 0 <= alpha < 3:
+                d -= X[i,alpha] * X[j,alpha]
+            for alpha from 0 <= alpha < 3:
+                gradient[i, alpha] += 1/(4.*PI)*gamma[j]*X[j, alpha]/d
+
+
+@cython.boundscheck(False) 
+@cython.wraparound(False)
+cpdef np.ndarray[DTYPE_t, ndim=2] gradient_S2_old(
+    np.ndarray[DTYPE_t, ndim=1] gamma, 
+    np.ndarray[DTYPE_t, ndim=2] X, 
+    DTYPE_t sigma):
+    """
+    Scaled gradient of the Hamiltonian defined in terms of lengths of 
+    differences between vectors, rather than inner products. Agrees 
+    with previous implementations of the gradient on the unit sphere.
+    
+    """
     cdef int N = X.shape[0]
     cdef int ndim = X.shape[1]
     cdef np.ndarray[DTYPE_t, ndim=2] res = np.zeros([N, ndim], dtype=DTYPE)
@@ -86,12 +113,15 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
     np.ndarray[DTYPE_t, ndim=1] gamma, 
     np.ndarray[DTYPE_t, ndim=2] X,
     DTYPE_t sigma):
-    # Agrees with Matlab
+    """
+    Computes the RHS of the point vortex equations.
+
+    """
 
     cdef np.ndarray[DTYPE_t, ndim=2] res
     cdef int i
 
-    res = scaled_gradient_hamiltonian(gamma, X, sigma)
+    res = gradient_S2_slow(gamma, X, sigma)
 
     for i from 0 <= i < X.shape[0]:
         res[i, :] = np.cross(res[i, :], X[i, :])
@@ -101,9 +131,9 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma, 
-                       np.ndarray[DTYPE_t, ndim=2] X,
-                       DTYPE_t sigma):
+def hamiltonian_S2(np.ndarray[DTYPE_t, ndim=1] gamma, 
+                   np.ndarray[DTYPE_t, ndim=2] X,
+                   DTYPE_t sigma):
     """
     Value of the energy for a vortex configuration, computed using 
     inner products.
@@ -137,9 +167,9 @@ def vortex_hamiltonian(np.ndarray[DTYPE_t, ndim=1] gamma,
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-def vortex_hamiltonian_differences(np.ndarray[DTYPE_t, ndim=1] gamma, 
-                                   np.ndarray[DTYPE_t, ndim=2] X,
-                                   DTYPE_t sigma):
+def hamiltonian_S2_old(np.ndarray[DTYPE_t, ndim=1] gamma, 
+                       np.ndarray[DTYPE_t, ndim=2] X,
+                       DTYPE_t sigma):
     """Value of the energy for a vortex configuration.
 
     INPUT:
@@ -172,8 +202,8 @@ def vortex_hamiltonian_differences(np.ndarray[DTYPE_t, ndim=1] gamma,
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-def vortex_moment(np.ndarray[DTYPE_t, ndim=1] gamma, 
-                  np.ndarray[DTYPE_t, ndim=2] X):
+def momentum_S2(np.ndarray[DTYPE_t, ndim=1] gamma, 
+                np.ndarray[DTYPE_t, ndim=2] X):
     """Moment of a vortex configuration.
 
     INPUT:

@@ -5,7 +5,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-modules = 'continuous_vortex_system', 'continuous_vortex_system_S3'
+modules = ['vortices_S2', 'vortices_S3']
 
 for module in modules:
     setup(cmdclass = {'build_ext': build_ext},

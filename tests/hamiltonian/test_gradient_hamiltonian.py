@@ -1,12 +1,24 @@
 import numpy as np
 import unittest
 
-from hopf.vortices.continuous_vortex_system import scaled_gradient_hamiltonian
-from hopf.vortices.vortices_s3 import scaled_gradient_hamiltonian_S3, scaled_gradient_hamiltonian_S3_fd
-from hopf.vortices.continuous_vortex_system_S3 import optimized_scaled_gradient_hamiltonian_S3
+from hopf.vortices.vortices_S2 import gradient_S2, gradient_S2_slow
+from hopf.vortices.vortices_S3 import gradient_S3, gradient_S3_fd
 
 from hopf.lie_algebras.su2_geometry import hopf, pauli
 from hopf.util.vectors import row_product
+
+
+def gradient_S3_pullback(gamma, psi, sigma):
+    """
+    Compute the gradient on S3 by first calculating the gradient on S2
+    and pulling back the result to S3.
+
+    """
+
+    x = hopf(psi)
+    grad_S2 = gradient_S2_slow(gamma, x, sigma)
+    
+    return np.einsum('ij, abj, ib -> ia', grad_S2, pauli, psi)
 
 
 class GradientHamiltonianTest(unittest.TestCase):
@@ -32,36 +44,35 @@ class GradientHamiltonianTest(unittest.TestCase):
         # Compute projected point
         self.x = hopf(phi)
 
-    def test_compare_S3_finite_differences(self):
-        """
-        Compare analytic expression for the gradient of Hamiltonian 
-        on S3 with the gradient computed by finite differences.
-
-        """
-
-        DH3_an = scaled_gradient_hamiltonian_S3(self.gamma, self.phi, 
-                                                self.sigma)
-        DH3_fd = scaled_gradient_hamiltonian_S3_fd(self.gamma, self.phi, 
-                                                   self.sigma)
-
-        self.assertTrue( np.allclose(DH3_an, DH3_fd) )
-
     def test_compare_S3_optimized(self):
         """
-        Compare analytic expression for gradient implemented in pure
-        Python with optimized cython version.
+        Compare gradient implemented with finite differences with the 
+        optimized cython gradient.
 
         """
 
         # Pre-allocate buffer
-        DH3_cy = np.zeros(self.phi.shape, dtype=np.complex)
+        DH3a = np.zeros(self.phi.shape, dtype=np.complex)
 
-        optimized_scaled_gradient_hamiltonian_S3(DH3_cy, self.gamma, self.phi, 
-                                                 self.sigma)
-        DH3_an = scaled_gradient_hamiltonian_S3(self.gamma, self.phi, 
-                                                self.sigma)
+        gradient_S3(DH3a, self.gamma, self.phi, self.sigma)
+        DH3b = gradient_S3_fd(self.gamma, self.phi, self.sigma)
 
-        self.assertTrue( np.allclose(DH3_cy, DH3_an, atol=1e-12) )
+        self.assertTrue( np.allclose(DH3a, DH3b) )
+
+    def test_compare_S2_optimized(self):
+        """
+        Compare different implementations of gradient on S2.
+
+        """
+
+        # Pre-allocate buffer
+        DH2a = np.zeros(self.x.shape)
+
+        gradient_S2(DH2a, self.gamma, self.x, self.sigma)
+        DH2b = gradient_S2_slow(self.gamma, self.x, self.sigma)
+
+        self.assertTrue( np.allclose(DH2a, DH2b, atol=1e-12) )
+
 
     def test_compare_S2_S3(self):
         """
@@ -70,19 +81,13 @@ class GradientHamiltonianTest(unittest.TestCase):
 
         """
 
-        DH3_an = scaled_gradient_hamiltonian_S3(self.gamma, self.phi, 
-                                                self.sigma)
 
-        DH2_an = scaled_gradient_hamiltonian(self.gamma, self.x, self.sigma)
+        # Pre-allocate buffer
+        DH3a = np.zeros(self.phi.shape, dtype=np.complex)
+        gradient_S3(DH3a, self.gamma, self.phi, self.sigma)
+        DH3b = gradient_S3_pullback(self.gamma, self.phi, self.sigma)
 
-        # Pull back gradient on S2 to S3
-        pullback = np.zeros((self.N, 2), dtype=np.complex)
-        for k in xrange(0, self.N):
-            for i in xrange(0, 3):
-                pullback[k, :] += DH2_an[k, i]*np.dot(pauli[:, :, i], 
-                                                      self.phi[k, :])
-
-        self.assertTrue( np.allclose(pullback, DH3_an, atol=1e-12) )
+        self.assertTrue( np.allclose(DH3a, DH3b, atol=1e-12) )
 
 
 if __name__ == '__main__':
