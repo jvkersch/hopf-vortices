@@ -46,24 +46,27 @@ class VortexIntegratorMidpoint:
         self.compute_momentum = compute_momentum
 
 
-    def residual_midpoint_eqn(self, phi0, phi1, pullback=True):
+    def residual_midpoint_eqn(self, phi0, phi1, pullback=False):
         """
         Compute the residual of the midpoint equation. 
         Needed for nonlinear solver below.
 
+        An alternative way to compute the gradient is by using
+
+        >>> x01 = hopf(phi01)
+        >>> gradH01_S2 = scaled_gradient_hamiltonian(self.gamma, x01,
+                                                 self.sigma)
+        >>> gradH01_S3a = np.einsum('ij, abj, ib -> ia',
+                                    gradH01_S2, pauli, phi01)
+
+
         """
         phi01 = (phi0 + phi1) / 2
-        if pullback:
-            x01 = hopf(phi01)
-            gradH01_S2 = scaled_gradient_hamiltonian(self.gamma, x01,
-                                                     self.sigma)
-            gradH01_S3 = np.einsum('ij, jkl, il -> ik', 
-                                   phi01.conj(), pauli, gradH01_S2)
-        else:
-            # Move allocating the array out of this function
-            gradH01_S3 = np.empty(phi01.shape, dtype=np.complex)
-            scaled_gradient_hamiltonian_S3(gradH01_S3, self.gamma, phi01,
-                                           self.sigma)
+
+        gradH01_S3 = np.empty(phi01.shape, dtype=np.complex)
+        scaled_gradient_hamiltonian_S3(gradH01_S3, self.gamma, phi01,
+                                       self.sigma)
+
 
         return -1.j*(phi1 - phi0) + self.h/2*gradH01_S3
 
@@ -167,8 +170,8 @@ class VortexIntegratorMidpoint:
         """
 
         f = lambda psi1: self.residual_midpoint_eqn(psi0, psi1)
-        # psi1 = complex_fsolve(f, psi0, f_tol=1e-14, verbose=False)
-        psi1 = so.newton_krylov(f, psi0, f_tol=1e-14, verbose=False)
+        psi1 = complex_fsolve(f, psi0, f_tol=1e-14, verbose=False)
+        # psi1 = so.newton_krylov(f, psi0, f_tol=1e-14, verbose=False)
         x1 = hopf(psi1)
 
         # Compute momentum map, if needed
