@@ -7,11 +7,9 @@ from ..lie_algebras.lie_algebra import cayley
 from ..util.vectors import row_product
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf, pauli)
-#from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3 # Slow!
 
-
-from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
-from ..vortices.continuous_vortex_system_S3 import scaled_gradient_hamiltonian_S3
+from ..vortices.vortices_S2 import gradient_S2
+from ..vortices.vortices_S3 import gradient_S3
 
 import ipdb
 
@@ -64,9 +62,7 @@ class VortexIntegratorMidpoint:
         phi01 = (phi0 + phi1) / 2
 
         gradH01_S3 = np.empty(phi01.shape, dtype=np.complex)
-        scaled_gradient_hamiltonian_S3(gradH01_S3, self.gamma, phi01,
-                                       self.sigma)
-
+        gradient_S3(gradH01_S3, self.gamma, phi01, self.sigma)
 
         return -1.j*(phi1 - phi0) + self.h/2*gradH01_S3
 
@@ -80,12 +76,11 @@ class VortexIntegratorMidpoint:
         use for debugging purposes only.
 
         """
+        gradH01 = np.empty(phi01.shape, dtype=np.complex)
+        gradH12 = np.empty(phi01.shape, dtype=np.complex)
+        scaled_gradient_S3(gradH01, self.gamma, (phi0 + phi1)/2, self.sigma)
+        scaled_gradient_S3(gradH12, self.gamma, (phi1 + phi2)/2, self.sigma)
 
-        gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
-                                                 self.sigma)
-        
-        gradH12 = scaled_gradient_hamiltonian_S3(self.gamma, (phi1+phi2)/2,
-                                                 self.sigma)
 
         N = len(self.gamma)
         res = np.empty((N, 3))
@@ -106,8 +101,10 @@ class VortexIntegratorMidpoint:
         directly on S3.
 
         """
-        gradH = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
-                                               self.sigma).conj()
+        gradH = np.empty(phi0.shape, dtype=np.complex)
+        gradient_S3(gradH, self.gamma, (phi0 + phi1)/2, self.sigma)
+
+        gradH = gradH.conj()
 
 	N = len(self.gamma)
         J = np.zeros(3)

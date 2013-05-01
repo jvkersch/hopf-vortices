@@ -6,7 +6,7 @@ from numpy import linalg as LA
 from math import floor
 
 from generic_integrator import GenericIntegrator
-from ..vortices.continuous_vortex_system import vortex_rhs
+from ..vortices.vortices_S2 import vortex_rhs
 
 from scipy.optimize import broyden1, newton_krylov
 

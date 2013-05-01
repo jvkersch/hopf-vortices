@@ -1,13 +1,12 @@
 import numpy as np
-from .integrators.vortex_integrator import VortexIntegrator
+
 from .integrators.rk4_integrator import RK4VortexIntegrator
 from .integrators.lie_poisson_integrator import LiePoissonIntegrator
 from .integrators.midpoint_integrator import MidpointIntegrator
-from .integrators.vortex_integrator_mu import VortexIntegrator_mu
 from .integrators.vortex_integrator_midpoint import VortexIntegratorMidpoint
 from .util.matlab_io import (load_initial_conditions, save_variables, 
                              load_variables)
-from .vortices.continuous_vortex_system import vortex_hamiltonian, vortex_moment
+from .vortices.vortices_S2 import hamiltonian_S2, momentum_S2
 
 
 
@@ -46,12 +45,7 @@ class Simulation:
         # TODO: add logging everywhere
 
         self.sim_type = sim
-        if sim == 'sphere':
-            v = VortexIntegrator(self.gamma, self.sigma, h)
-        elif sim == 'sphere-momentum':
-            v = VortexIntegrator(self.gamma, self.sigma, h, 
-                                 compute_momentum=True)
-        elif sim == 'rk4':
+        if sim == 'rk4':
             v = RK4VortexIntegrator(self.gamma, self.sigma, h)
         elif sim == 'lie-poisson':
             v = LiePoissonIntegrator(self.gamma, self.sigma, h, 
@@ -59,14 +53,8 @@ class Simulation:
         elif sim == 'midpoint':
             v = MidpointIntegrator(self.gamma, self.sigma, h, 
                                    diagnostics=diagnostics)
-        elif sim == 'sphere-mu':
-            v = VortexIntegrator_mu(self.gamma, self.sigma, h, 
-                                    diagnostics=diagnostics)
         elif sim == 'sphere-midpoint':
             v = VortexIntegratorMidpoint(self.gamma, self.sigma, h)
-        elif sim == 'sphere-midpoint-momentum':
-            v = VortexIntegratorMidpoint(self.gamma, self.sigma, h, 
-                                         compute_momentum=True)
         else:
             raise ValueError, "Simulator %s not available." % sim
             
@@ -74,10 +62,6 @@ class Simulation:
 
         self.vortices = output[0]
         self.times = output[1]
-
-	self.momentum = None
-        if sim == 'sphere-momentum' or sim == 'sphere-twostep-momentum':
-            self.momentum = output[2]
 
 
     def post_process(self):
@@ -89,8 +73,8 @@ class Simulation:
         for k in xrange(0, n):
             vortex = self.vortices[k, :, :]
             self.energies[k] = \
-                vortex_hamiltonian(self.gamma, vortex, self.sigma)
-            self.moments[k] = vortex_moment(self.gamma, vortex)
+                hamiltonian_S2(self.gamma, vortex, self.sigma)
+            self.moments[k] = momentum_S2(self.gamma, vortex)
 
 
     def save_results(self, output_filename=None):
@@ -104,13 +88,6 @@ class Simulation:
 
         variables = {'vortices': self.vortices, 'times': self.times,
                      'energies': self.energies, 'moments': self.moments}
-
-        #if self.diagnostics:
-        #    variables['number_iterations'] = self.number_iterations
-        #    variables['residues'] = self.residues
-
-	if self.momentum is not None:
-	    variables['momentum'] = self.momentum
 
         save_variables(output_filename, variables)
                        

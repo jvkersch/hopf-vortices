@@ -5,7 +5,7 @@ from scipy.optimize import fsolve, fixed_point, broyden1, newton_krylov
 
 from ..lie_algebras.adjoint import Ad
 from ..lie_algebras.lie_algebra import cayley
-from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
+from ..vortices.vortices_S2 import gradient_S2
 from .vectorized_so3 import vector_hatmap, vector_invhat
 from .generic_integrator import GenericIntegrator
 
@@ -96,5 +96,6 @@ class LiePoissonIntegrator(GenericIntegrator):
     def gradient_hamiltonian(self, rho):
         
         x = vector_invhat(rho, self.gamma)
-        rhs = scaled_gradient_hamiltonian(self.gamma, x, self.sigma)
-        return vector_hatmap(rhs, np.ones(self.N))
+        res = np.empty(x.shape)
+        gradient_S2(res, self.gamma, x, self.sigma)
+        return vector_hatmap(res, np.ones(self.N))
