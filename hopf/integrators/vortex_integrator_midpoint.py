@@ -7,15 +7,20 @@ from ..lie_algebras.lie_algebra import cayley
 from ..util.vectors import row_product
 from ..lie_algebras.su2_geometry import (cayley_klein, apply_2by2, hopf, 
                                          inverse_hopf, pauli)
-from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3
+#from ..vortices.vortices_s3 import scaled_gradient_hamiltonian_S3 # Slow!
 
 
 from ..vortices.continuous_vortex_system import scaled_gradient_hamiltonian
+from ..vortices.continuous_vortex_system_S3 import scaled_gradient_hamiltonian_S3
+
+import ipdb
 
 
 def complex_fsolve(fun, psi0, **kwargs):
     """
     Wrapper to solve complex-valued nonlinear equations using newton_krylov.
+
+    (Workaround for a bug in scipy < 0.11)
 
     """
     m, n = psi0.shape
@@ -41,17 +46,26 @@ class VortexIntegratorMidpoint:
         self.compute_momentum = compute_momentum
 
 
-    def residual_midpoint_eqn(self, phi0, phi1):
+    def residual_midpoint_eqn(self, phi0, phi1, pullback=True):
         """
-        Compute the residual of the midpoint equation. Needed for nonlinear solver
-        below.
+        Compute the residual of the midpoint equation. 
+        Needed for nonlinear solver below.
 
         """
+        phi01 = (phi0 + phi1) / 2
+        if pullback:
+            x01 = hopf(phi01)
+            gradH01_S2 = scaled_gradient_hamiltonian(self.gamma, x01,
+                                                     self.sigma)
+            gradH01_S3 = np.einsum('ij, jkl, il -> ik', 
+                                   phi01.conj(), pauli, gradH01_S2)
+        else:
+            # Move allocating the array out of this function
+            gradH01_S3 = np.empty(phi01.shape, dtype=np.complex)
+            scaled_gradient_hamiltonian_S3(gradH01_S3, self.gamma, phi01,
+                                           self.sigma)
 
-        gradH01 = scaled_gradient_hamiltonian_S3(self.gamma, (phi0+phi1)/2,
-                                                 self.sigma)
-
-        return -1.j*(phi1 - phi0) + self.h/2*gradH01
+        return -1.j*(phi1 - phi0) + self.h/2*gradH01_S3
 
 
     def check_full_equations(self, phi0, phi1, phi2):
@@ -153,7 +167,8 @@ class VortexIntegratorMidpoint:
         """
 
         f = lambda psi1: self.residual_midpoint_eqn(psi0, psi1)
-        psi1 = complex_fsolve(f, psi0, f_tol=1e-14, verbose=False)
+        # psi1 = complex_fsolve(f, psi0, f_tol=1e-14, verbose=False)
+        psi1 = so.newton_krylov(f, psi0, f_tol=1e-14, verbose=False)
         x1 = hopf(psi1)
 
         # Compute momentum map, if needed
