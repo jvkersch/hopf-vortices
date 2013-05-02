@@ -6,7 +6,7 @@ s.load_initial_conditions('collapse3.mat')
 
 # Medium regularization
 s.sigma = 0.10
-s.run_simulation(tmax=500, numpoints=500, sim='sphere-midpoint-momentum')
+s.run_simulation(tmax=500, numpoints=500, sim='sphere-midpoint')
 s.post_process()
 s.save_results('data/collapse3_sphere_sigma10_sim_long.mat')
 
