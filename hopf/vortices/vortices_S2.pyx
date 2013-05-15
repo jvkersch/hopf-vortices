@@ -121,7 +121,8 @@ cpdef np.ndarray[DTYPE_t, ndim=2] vortex_rhs(
     cdef np.ndarray[DTYPE_t, ndim=2] res
     cdef int i
 
-    res = gradient_S2_slow(gamma, X, sigma)
+    res = np.empty(X.shape)
+    gradient_S2(res, gamma, X, sigma)
 
     for i from 0 <= i < X.shape[0]:
         res[i, :] = np.cross(res[i, :], X[i, :])
