@@ -14,6 +14,18 @@ for n, h in enumerate(logspace(-4, -1, 10)):
     filename = 'data/pd_sphere_order_%d.mat' % n
     s.save_results(filename)
 
+## Simulations for different time scales (RK2 integrator)
+
+s = Simulation()
+s.load_initial_conditions('pd_initial_conditions.mat')
+
+for n, h in enumerate(logspace(-4, -1, 10)):
+    s.run_simulation(tmax=10, h=h, sim='rk2', diagnostics=True)
+    s.post_process()
+
+    filename = 'data/pd_rk_order_%d.mat' % n
+    s.save_results(filename)
+
 
 ## Simulations for different time scales (Lie-Poisson integrator)
 
