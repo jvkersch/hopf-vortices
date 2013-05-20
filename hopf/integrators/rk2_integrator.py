@@ -26,7 +26,7 @@ class RK2VortexIntegrator(GenericIntegrator):
         rhs = vortex_rhs(self.gamma, X0, self.sigma)
 
         Y  = X0 + self.h * rhs
-        X1 = X0 + self.h * ( rhs + vortex_rhs(self.gamma, Y, self.sigma) )
+        X1 = X0 + self.h/2 * ( rhs + vortex_rhs(self.gamma, Y, self.sigma) )
         
         # Project down to the sphere
         for k in xrange(0, X1.shape[0]):
