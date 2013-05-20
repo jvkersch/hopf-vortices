@@ -1,6 +1,7 @@
 import numpy as np
 
 from .integrators.rk4_integrator import RK4VortexIntegrator
+from .integrators.rk2_integrator import RK2VortexIntegrator
 from .integrators.lie_poisson_integrator import LiePoissonIntegrator
 from .integrators.midpoint_integrator import MidpointIntegrator
 from .integrators.vortex_integrator_midpoint import VortexIntegratorMidpoint
@@ -47,6 +48,8 @@ class Simulation:
         self.sim_type = sim
         if sim == 'rk4':
             v = RK4VortexIntegrator(self.gamma, self.sigma, h)
+        elif sim == 'rk2':
+            v = RK2VortexIntegrator(self.gamma, self.sigma, h)
         elif sim == 'lie-poisson':
             v = LiePoissonIntegrator(self.gamma, self.sigma, h, 
                                      diagnostics=diagnostics)
